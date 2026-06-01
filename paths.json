@@ -1,22 +1,22 @@
 {
   "mappings": [
-    "/content/carvelo/language-masters/en:/",
-    "/content/carvelo/language-masters/en/:/en/",
-    "/content/carvelo/language-masters/fr/:/fr/",
-    "/content/carvelo/language-masters/fr:/fr",
-    "/content/carvelo/language-masters/es/:/es/",
-    "/content/carvelo/language-masters/es:/es",
-    "/content/carvelo/language-masters/ja/:/ja/",
-    "/content/carvelo/language-masters/ja:/ja",
-    "/content/carvelo/language-masters/de/:/de/",
-    "/content/carvelo/language-masters/de:/de",
-    "/content/carvelo/configuration:/.helix/config.json",
-    "/content/carvelo/metadata:/metadata.json",
-    "/content/carvelo/redirects:/redirects.json",
-    "/content/carvelo/placeholders:/placeholders.json"
+    "/content/allianz/language-masters/en:/",
+    "/content/allianz/language-masters/en/:/en/",
+    "/content/allianz/language-masters/fr/:/fr/",
+    "/content/allianz/language-masters/fr:/fr",
+    "/content/allianz/language-masters/es/:/es/",
+    "/content/allianz/language-masters/es:/es",
+    "/content/allianz/language-masters/ja/:/ja/",
+    "/content/allianz/language-masters/ja:/ja",
+    "/content/allianz/language-masters/de/:/de/",
+    "/content/allianz/language-masters/de:/de",
+    "/content/allianz/configuration:/.helix/config.json",
+    "/content/allianz/metadata:/metadata.json",
+    "/content/allianz/redirects:/redirects.json",
+    "/content/allianz/placeholders:/placeholders.json"
   ],
   "includes": [
-    "/content/carvelo/",
-    "/content/dam/carvelo/"
+    "/content/allianz/",
+    "/content/dam/allianz/"
   ]
 }
