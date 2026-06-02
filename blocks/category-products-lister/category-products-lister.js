@@ -345,7 +345,10 @@ export default async function decorate(block) {
 
   const grid = document.createElement("div");
   grid.className = "cpl-grid";
-  grid.style.setProperty("--cpl-columns", cardsPerRow);
+  grid.style.setProperty(
+    "--cpl-card-width",
+    `calc((100% - ${cardsPerRow - 1} * var(--cpl-gap)) / ${cardsPerRow})`,
+  );
   block.append(grid);
 
   if (!items || items.length === 0) {
