@@ -1,4 +1,4 @@
-import { createProductImage, readBlockConfig, loadCSS } from "../../scripts/aem.js";
+import { createProductImage, readBlockConfig } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
 import { buildCard } from "../category-products-lister/category-products-lister.js";
@@ -402,8 +402,6 @@ export default async function decorate(block) {
   const isAuthor = isAuthorEnvironment();
   const config = readBlockConfig(block);
 
-  // Load cpl CSS so the reused cpl-card classes are styled correctly
-  loadCSS(`${window.hlx?.codeBasePath || ''}/blocks/category-products-lister/category-products-lister.css`);
 
   const eventConfig = {
     productView: (config.productvieweventtype || config['product-view-event-type'] || '').trim(),
