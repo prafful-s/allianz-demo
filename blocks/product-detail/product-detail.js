@@ -31,20 +31,56 @@ const STATIC_DETAILS = [
 ];
 
 const COUNTRY_FLAGS = {
+  // Central / Western Europe
   de: "🇩🇪", germany: "🇩🇪", deutschland: "🇩🇪",
   fr: "🇫🇷", france: "🇫🇷",
   gb: "🇬🇧", uk: "🇬🇧", "united kingdom": "🇬🇧",
-  us: "🇺🇸", usa: "🇺🇸",
   it: "🇮🇹", italy: "🇮🇹",
   es: "🇪🇸", spain: "🇪🇸",
   nl: "🇳🇱", netherlands: "🇳🇱",
   ch: "🇨🇭", switzerland: "🇨🇭",
   at: "🇦🇹", austria: "🇦🇹",
+  be: "🇧🇪", belgium: "🇧🇪",
+  pt: "🇵🇹", portugal: "🇵🇹",
+  // Eastern Europe
   pl: "🇵🇱", poland: "🇵🇱",
+  sk: "🇸🇰", slovakia: "🇸🇰",
+  cz: "🇨🇿", "czech republic": "🇨🇿", czechia: "🇨🇿",
+  hu: "🇭🇺", hungary: "🇭🇺",
+  ro: "🇷🇴", romania: "🇷🇴",
+  bg: "🇧🇬", bulgaria: "🇧🇬",
+  hr: "🇭🇷", croatia: "🇭🇷",
+  // Americas
+  us: "🇺🇸", usa: "🇺🇸", "united states": "🇺🇸",
+  br: "🇧🇷", brazil: "🇧🇷",
+  mx: "🇲🇽", mexico: "🇲🇽",
+  // Asia-Pacific
+  cn: "🇨🇳", china: "🇨🇳",
+  jp: "🇯🇵", japan: "🇯🇵",
+  in: "🇮🇳", india: "🇮🇳",
+  id: "🇮🇩", indonesia: "🇮🇩",
+  au: "🇦🇺", australia: "🇦🇺",
+  sg: "🇸🇬", singapore: "🇸🇬",
+  // Middle East / Africa
+  ae: "🇦🇪", uae: "🇦🇪", "united arab emirates": "🇦🇪",
+  za: "🇿🇦", "south africa": "🇿🇦",
+  // Nordic
+  se: "🇸🇪", sweden: "🇸🇪",
+  dk: "🇩🇰", denmark: "🇩🇰",
+  no: "🇳🇴", norway: "🇳🇴",
+  fi: "🇫🇮", finland: "🇫🇮",
+  // Special
+  global: "🌍",
 };
 
-function getCountryFlag(name) {
-  return name ? (COUNTRY_FLAGS[name.toLowerCase().trim()] || "") : "";
+function cleanCountryName(raw) {
+  // Strip surrounding escaped/literal quotes that the CMS injects: "\"Slovakia\"" → "Slovakia"
+  return (raw || "").replace(/^["']+|["']+$/g, "").trim();
+}
+
+function getCountryFlag(raw) {
+  const name = cleanCountryName(raw);
+  return name ? (COUNTRY_FLAGS[name.toLowerCase()] || "") : "";
 }
 
 function getQueryParam(param) {
@@ -152,6 +188,7 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
     targetAudience = [],
     year,
     country = [],
+    product: productType = "",
   } = product;
 
   const imageUrl = isAuthor ? imageFile?._authorUrl : imageFile?._publishUrl;
@@ -185,12 +222,17 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
   const metaItems = [];
 
   if (country && country.length > 0) {
+    const cleaned = cleanCountryName(country[0]);
     const flag = getCountryFlag(country[0]);
-    metaItems.push({ label: "Origin OE", display: flag || country[0], isFlag: !!flag });
+    metaItems.push({ label: "Origin OE", display: flag || cleaned, isFlag: !!flag });
   }
 
   if (category) {
     metaItems.push({ label: "Content type", display: normalizeCategoryValue(category).replace(/\//g, " / ") });
+  }
+
+  if (productType) {
+    metaItems.push({ label: "Product", display: productType });
   }
 
   if (metaItems.length > 0) {
@@ -296,9 +338,15 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
     boxSub.className = "pd-pricing-box-sub";
     boxSub.textContent = "1 year / digital channels";
 
-    const boxValue = document.createElement("span");
+    const boxValue = document.createElement("div");
     boxValue.className = "pd-pricing-box-value";
-    boxValue.textContent = `from ${buyout}`;
+    const fromSpan = document.createElement("span");
+    fromSpan.className = "pd-pricing-from";
+    fromSpan.textContent = "from ";
+    const priceSpan = document.createElement("span");
+    priceSpan.className = "pd-pricing-price";
+    priceSpan.textContent = buyout;
+    boxValue.append(fromSpan, priceSpan);
 
     box.append(boxTitle, boxSub, boxValue);
     pricingSection.appendChild(box);
