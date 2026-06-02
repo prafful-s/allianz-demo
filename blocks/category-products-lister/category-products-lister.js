@@ -44,8 +44,27 @@ function buildProductUrl(item, isAuthor, redirectUrl = "") {
   return appendProductId(redirectUrl || getDefaultProductDetailPath(isAuthor), productId);
 }
 
+function buildStarRating(rating) {
+  const container = document.createElement("div");
+  container.className = "cpl-card-stars";
+  container.setAttribute("aria-label", `Rating: ${rating} out of 5`);
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+    star.setAttribute("aria-hidden", "true");
+    if (rating >= i) {
+      star.className = "cpl-card-star cpl-card-star--full";
+    } else if (rating >= i - 0.5) {
+      star.className = "cpl-card-star cpl-card-star--half";
+    } else {
+      star.className = "cpl-card-star cpl-card-star--empty";
+    }
+    container.append(star);
+  }
+  return container;
+}
+
 function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, addToCartEventType = '') {
-  const { sku, title, imageFile = {}, category, buyout, price, description = {} } = item || {};
+  const { sku, title, imageFile = {}, category, buyout, targetAudience = [], rating, price, description = {} } = item || {};
   const productId = sku || "";
 
   const wrapper = document.createElement("div");
@@ -61,38 +80,64 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
     });
   }
 
-  let picture = null;
-  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
-    picture = createProductImage(imageFile, title || "Product image", {
-      isAuthor,
-      eager: false,
-    });
-  }
-
+  // Image area
   const imgWrap = document.createElement("div");
   imgWrap.className = "cpl-card-media";
-  if (picture) imgWrap.append(picture);
 
+  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
+    const picture = createProductImage(imageFile, title || "Product image", { isAuthor, eager: false });
+    if (picture) imgWrap.append(picture);
+  }
+
+  // Content
   const meta = document.createElement("div");
   meta.className = "cpl-card-meta";
-  const cat = document.createElement("p");
-  cat.className = "cpl-card-category";
-  cat.textContent = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
+
   const titleEl = document.createElement("h3");
   titleEl.className = "cpl-card-title";
   titleEl.textContent = title || "";
-  const priceEl = document.createElement("p");
-  priceEl.className = "cpl-card-price";
-  priceEl.textContent = buyout || "";
-  meta.append(cat, titleEl, priceEl);
+  meta.append(titleEl);
 
+  if (targetAudience && targetAudience.length > 0) {
+    const audienceEl = document.createElement("p");
+    audienceEl.className = "cpl-card-audience";
+    const label = document.createElement("strong");
+    label.textContent = "Target: ";
+    audienceEl.append(label, targetAudience.join(", "));
+    meta.append(audienceEl);
+  }
+
+  if (buyout) {
+    const buyoutEl = document.createElement("p");
+    buyoutEl.className = "cpl-card-buyout";
+    const label = document.createElement("strong");
+    label.textContent = "Buyout: ";
+    buyoutEl.append(label, buyout);
+    meta.append(buyoutEl);
+  }
+
+  // Footer: Product button + star rating
+  const footer = document.createElement("div");
+  footer.className = "cpl-card-footer";
+
+  const productBtn = document.createElement("button");
+  productBtn.className = "cpl-card-product-btn";
+  productBtn.textContent = "Product";
+  productBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (productId) window.location.href = buildProductUrl(item, isAuthor, redirectUrl);
+  });
+  footer.append(productBtn);
+
+  if (rating != null) footer.append(buildStarRating(rating));
+
+  meta.append(footer);
   card.append(imgWrap, meta);
   wrapper.append(card);
 
   if (enableAddToCart && productId) {
     const formattedCategory = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
     const cartImageUrl = isAuthor ? imageFile?._authorUrl : imageFile?._publishUrl;
-
     const addToCartBtn = document.createElement("button");
     addToCartBtn.className = "cpl-card-add-to-cart";
     addToCartBtn.textContent = "Add to Cart";
