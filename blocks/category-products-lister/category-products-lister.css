@@ -73,20 +73,19 @@ main .category-products-lister .cpl-card-media {
   height: 200px;
   overflow: hidden;
   background-color: #0000000a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-main .category-products-lister .cpl-card-media picture,
-main .category-products-lister .cpl-card-media img {
+main .category-products-lister .cpl-card-media picture {
   display: block;
   width: 100%;
   height: 100%;
 }
 
 main .category-products-lister .cpl-card-media img {
-  object-fit: contain;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   filter: brightness(.96);
 }
 
