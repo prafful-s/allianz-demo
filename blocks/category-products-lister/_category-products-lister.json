@@ -79,8 +79,37 @@
           "description": "Visual style variant for the product listing",
           "options": [
             { "name": "Default", "value": "" },
-            { "name": "No Border", "value": "no-border" }
+            { "name": "No Border", "value": "no-border" },
+            { "name": "Carousel", "value": "carousel" }
           ]
+        },
+        {
+          "component": "text",
+          "name": "heading",
+          "label": "Carousel Heading",
+          "value": "",
+          "valueType": "string",
+          "description": "Heading displayed above the carousel",
+          "condition": {
+            "==": [
+              { "var": "style" },
+              "carousel"
+            ]
+          }
+        },
+        {
+          "component": "text",
+          "name": "learn-more-label",
+          "label": "Learn More Button Label",
+          "value": "Learn more",
+          "valueType": "string",
+          "description": "Label for the Learn More button in carousel view",
+          "condition": {
+            "==": [
+              { "var": "style" },
+              "carousel"
+            ]
+          }
         },
         {
           "component": "boolean",

@@ -229,7 +229,13 @@
         "label": "Carousel Heading",
         "value": "",
         "valueType": "string",
-        "description": "Heading displayed above the carousel (e.g. 'Choose your car'). Only used in Carousel variant."
+        "description": "Heading displayed above the carousel (e.g. 'Choose your car'). Only used in Carousel variant.",
+        "condition": {
+          "==": [
+            { "var": "style" },
+            "carousel"
+          ]
+        }
       },
       {
         "component": "text",
@@ -237,7 +243,13 @@
         "label": "Learn More Button Label",
         "value": "Learn more",
         "valueType": "string",
-        "description": "Text for the Learn more button in the Carousel variant."
+        "description": "Text for the Learn more button in the Carousel variant.",
+        "condition": {
+          "==": [
+            { "var": "style" },
+            "carousel"
+          ]
+        }
       },
       {
         "component": "boolean",
