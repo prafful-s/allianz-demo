@@ -87,6 +87,37 @@ function getQueryParam(param) {
   return new URLSearchParams(window.location.search).get(param);
 }
 
+function buildStarRating(rating) {
+  const container = document.createElement("div");
+  container.className = "pd-rec-card-stars";
+  container.setAttribute("aria-label", `Rating: ${rating} out of 5`);
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+    star.setAttribute("aria-hidden", "true");
+    if (rating >= i) {
+      star.className = "pd-rec-card-star pd-rec-card-star--full";
+    } else if (rating >= i - 0.5) {
+      star.className = "pd-rec-card-star pd-rec-card-star--half";
+    } else {
+      star.className = "pd-rec-card-star pd-rec-card-star--empty";
+    }
+    container.append(star);
+  }
+  return container;
+}
+
+function getRecommendationProductUrl(sku, isAuthor) {
+  const currentPath = window.location.pathname;
+  let basePath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+  const pathMatch = currentPath.match(/\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)\//);
+  if (pathMatch) {
+    const langCode = pathMatch[1];
+    basePath = currentPath.substring(0, currentPath.indexOf(`/${langCode}/`) + langCode.length + 1);
+  }
+  const productPath = isAuthor ? `${basePath}/product.html` : `${basePath}/product`;
+  return `${productPath}?productId=${encodeURIComponent(sku)}`;
+}
+
 function updatePageTitle(product) {
   const t = (product?.title || "").trim();
   if (t) document.title = t;
@@ -134,26 +165,20 @@ async function fetchAllProducts(path, isAuthor) {
 }
 
 function buildRecommendationCard(item, isAuthor) {
-  const { sku, title, imageFile = {}, category } = item || {};
+  const { sku, title, imageFile = {}, buyout, year, targetAudience = [], rating } = item || {};
+  const productUrl = sku ? getRecommendationProductUrl(sku, isAuthor) : "#";
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "pd-rec-card-wrapper";
 
   const card = document.createElement("article");
   card.className = "pd-rec-card";
-
   if (sku) {
     card.style.cursor = "pointer";
-    card.addEventListener("click", () => {
-      const currentPath = window.location.pathname;
-      let basePath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-      const pathMatch = currentPath.match(/\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)\//);
-      if (pathMatch) {
-        const langCode = pathMatch[1];
-        basePath = currentPath.substring(0, currentPath.indexOf(`/${langCode}/`) + langCode.length + 1);
-      }
-      const productPath = isAuthor ? `${basePath}/product.html` : `${basePath}/product`;
-      window.location.href = `${productPath}?productId=${encodeURIComponent(sku)}`;
-    });
+    card.addEventListener("click", () => { window.location.href = productUrl; });
   }
 
+  // Image
   const imgWrap = document.createElement("div");
   imgWrap.className = "pd-rec-card-media";
   if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
@@ -161,20 +186,63 @@ function buildRecommendationCard(item, isAuthor) {
     if (picture) imgWrap.append(picture);
   }
 
+  // Meta
   const meta = document.createElement("div");
   meta.className = "pd-rec-card-meta";
-
-  const cat = document.createElement("p");
-  cat.className = "pd-rec-card-category";
-  cat.textContent = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
 
   const titleEl = document.createElement("h3");
   titleEl.className = "pd-rec-card-title";
   titleEl.textContent = title || "";
+  meta.append(titleEl);
 
-  meta.append(cat, titleEl);
+  if (targetAudience && targetAudience.length > 0) {
+    const audienceEl = document.createElement("p");
+    audienceEl.className = "pd-rec-card-audience";
+    const label = document.createElement("strong");
+    label.textContent = "Target: ";
+    audienceEl.append(label, targetAudience.join(", "));
+    meta.append(audienceEl);
+  }
+
+  if (year || buyout) {
+    const buyoutEl = document.createElement("p");
+    buyoutEl.className = "pd-rec-card-buyout";
+    const parts = [];
+    if (year) {
+      const yearLabel = document.createElement("strong");
+      yearLabel.textContent = "Year: ";
+      parts.push(yearLabel, String(year));
+    }
+    if (year && buyout) parts.push(" | ");
+    if (buyout) {
+      const buyoutLabel = document.createElement("strong");
+      buyoutLabel.textContent = "Buyout: ";
+      parts.push(buyoutLabel, buyout);
+    }
+    buyoutEl.append(...parts);
+    meta.append(buyoutEl);
+  }
+
+  // Footer: Product button + star rating
+  const footer = document.createElement("div");
+  footer.className = "pd-rec-card-footer";
+
+  const productBtn = document.createElement("button");
+  productBtn.className = "pd-rec-card-product-btn";
+  productBtn.textContent = "Product";
+  productBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (sku) window.location.href = productUrl;
+  });
+  footer.append(productBtn);
+
+  if (rating != null) footer.append(buildStarRating(rating));
+
+  meta.append(footer);
   card.append(imgWrap, meta);
-  return card;
+  wrapper.append(card);
+
+  return wrapper;
 }
 
 function buildProductDetail(product, isAuthor, eventConfig = {}) {

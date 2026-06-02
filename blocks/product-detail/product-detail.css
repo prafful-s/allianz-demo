@@ -387,7 +387,7 @@ main .product-detail .pd-btn-icon:hover {
 }
 
 /* ============================================================
-   "You May Also Like" Recommendations
+   "You May Also Like" Recommendations  — mirrors cpl-card design
    ============================================================ */
 
 main .product-detail .pd-recommendations {
@@ -407,86 +407,166 @@ main .product-detail .pd-rec-title {
   color: var(--pd-blue);
 }
 
+/* Scrollable row — same behaviour as cpl-grid */
 main .product-detail .pd-rec-grid {
   display: flex;
   flex-wrap: nowrap;
   gap: 24px;
-  justify-content: center;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 8px;
 }
 
-main .product-detail .pd-rec-grid .pd-rec-card {
-  flex: 0 0 227px;
-  width: 227px;
-  min-width: 227px;
+main .product-detail .pd-rec-grid::-webkit-scrollbar {
+  display: none;
 }
 
+/* Card wrapper */
+main .product-detail .pd-rec-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+}
+
+/* Card — matches .cpl-card */
 main .product-detail .pd-rec-card {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
   background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
 }
 
 main .product-detail .pd-rec-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
 }
 
+/* Media — matches .cpl-card-media */
 main .product-detail .pd-rec-card-media {
-  width: 100%;
-  height: 200px;
+  position: relative;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: #f0f4f8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: #0000000a;
 }
 
 main .product-detail .pd-rec-card-media picture {
+  position: absolute;
+  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
 }
 
 main .product-detail .pd-rec-card-media img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 0.3s ease;
+  height: 88%;
+  object-fit: cover;
+  filter: brightness(.96);
 }
 
-main .product-detail .pd-rec-card:hover .pd-rec-card-media img {
-  transform: scale(1.05);
-}
-
+/* Meta — matches .cpl-card-meta */
 main .product-detail .pd-rec-card-meta {
-  padding: 1.25rem;
-  flex: 1;
+  padding: 0 16px 14px;
+  margin-bottom: -35px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  text-align: center;
-  align-items: center;
-}
-
-main .product-detail .pd-rec-card-category {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--pd-gray);
-  line-height: 1.2;
+  gap: 5px;
+  flex: 1;
 }
 
 main .product-detail .pd-rec-card-title {
   margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--pd-blue);
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111;
 }
 
-/* Recommendations responsive */
+main .product-detail .pd-rec-card-audience,
+main .product-detail .pd-rec-card-buyout {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #444;
+  line-height: 1.4;
+}
+
+/* Footer — matches .cpl-card-footer */
+main .product-detail .pd-rec-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+/* Product button — matches .cpl-card-product-btn */
+main .product-detail .pd-rec-card-product-btn {
+  background: transparent;
+  border: 1.5px solid #111;
+  color: #111;
+  border-radius: 999px;
+  padding: 5px 18px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+main .product-detail .pd-rec-card-product-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+/* Star rating — matches .cpl-card-stars */
+main .product-detail .pd-rec-card-stars {
+  display: flex;
+  gap: 1px;
+}
+
+main .product-detail .pd-rec-card-star {
+  position: relative;
+  display: inline-block;
+  font-size: 0.95rem;
+  color: #ddd;
+}
+
+main .product-detail .pd-rec-card-star::before {
+  content: '★';
+}
+
+main .product-detail .pd-rec-card-star--full {
+  color: #f5a623;
+}
+
+main .product-detail .pd-rec-card-star--empty {
+  color: #ddd;
+}
+
+main .product-detail .pd-rec-card-star--half::before {
+  color: #ddd;
+}
+
+main .product-detail .pd-rec-card-star--half::after {
+  content: '★';
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #f5a623;
+}
+
 @media (width <= 768px) {
   main .product-detail .pd-recommendations {
     margin-top: 60px;
@@ -496,33 +576,5 @@ main .product-detail .pd-rec-card-title {
   main .product-detail .pd-rec-title {
     font-size: 1.5rem;
     margin-bottom: 32px;
-  }
-
-  main .product-detail .pd-rec-grid {
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-
-  main .product-detail .pd-rec-grid .pd-rec-card {
-    flex: 0 0 240px;
-    width: 240px;
-    min-width: 240px;
-  }
-
-  main .product-detail .pd-rec-card-media {
-    height: 220px;
-  }
-}
-
-@media (width <= 480px) {
-  main .product-detail .pd-rec-grid {
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  main .product-detail .pd-rec-grid .pd-rec-card {
-    flex: 0 0 220px;
-    width: 220px;
-    min-width: 220px;
   }
 }
