@@ -63,7 +63,7 @@ function buildStarRating(rating) {
   return container;
 }
 
-function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, addToCartEventType = '') {
+export function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, addToCartEventType = '') {
   const { sku, title, imageFile = {}, category, buyout, year, targetAudience = [], rating, price, description = {} } = item || {};
   const productId = sku || "";
 

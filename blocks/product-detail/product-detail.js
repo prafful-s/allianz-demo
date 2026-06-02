@@ -1,6 +1,7 @@
-import { createProductImage, readBlockConfig } from "../../scripts/aem.js";
+import { createProductImage, readBlockConfig, loadCSS } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
+import { buildCard } from "../category-products-lister/category-products-lister.js";
 
 const AUTHOR_PRODUCT_DETAIL_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProductDetails;";
 const PUBLISH_PRODUCT_DETAIL_ENDPOINT = "https://publish-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProductDetails;";
@@ -87,37 +88,6 @@ function getQueryParam(param) {
   return new URLSearchParams(window.location.search).get(param);
 }
 
-function buildStarRating(rating) {
-  const container = document.createElement("div");
-  container.className = "pd-rec-card-stars";
-  container.setAttribute("aria-label", `Rating: ${rating} out of 5`);
-  for (let i = 1; i <= 5; i++) {
-    const star = document.createElement("span");
-    star.setAttribute("aria-hidden", "true");
-    if (rating >= i) {
-      star.className = "pd-rec-card-star pd-rec-card-star--full";
-    } else if (rating >= i - 0.5) {
-      star.className = "pd-rec-card-star pd-rec-card-star--half";
-    } else {
-      star.className = "pd-rec-card-star pd-rec-card-star--empty";
-    }
-    container.append(star);
-  }
-  return container;
-}
-
-function getRecommendationProductUrl(sku, isAuthor) {
-  const currentPath = window.location.pathname;
-  let basePath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-  const pathMatch = currentPath.match(/\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)\//);
-  if (pathMatch) {
-    const langCode = pathMatch[1];
-    basePath = currentPath.substring(0, currentPath.indexOf(`/${langCode}/`) + langCode.length + 1);
-  }
-  const productPath = isAuthor ? `${basePath}/product.html` : `${basePath}/product`;
-  return `${productPath}?productId=${encodeURIComponent(sku)}`;
-}
-
 function updatePageTitle(product) {
   const t = (product?.title || "").trim();
   if (t) document.title = t;
@@ -164,86 +134,6 @@ async function fetchAllProducts(path, isAuthor) {
   }
 }
 
-function buildRecommendationCard(item, isAuthor) {
-  const { sku, title, imageFile = {}, buyout, year, targetAudience = [], rating } = item || {};
-  const productUrl = sku ? getRecommendationProductUrl(sku, isAuthor) : "#";
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "pd-rec-card-wrapper";
-
-  const card = document.createElement("article");
-  card.className = "pd-rec-card";
-  if (sku) {
-    card.style.cursor = "pointer";
-    card.addEventListener("click", () => { window.location.href = productUrl; });
-  }
-
-  // Image
-  const imgWrap = document.createElement("div");
-  imgWrap.className = "pd-rec-card-media";
-  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
-    const picture = createProductImage(imageFile, title || "Product image", { isAuthor, eager: false });
-    if (picture) imgWrap.append(picture);
-  }
-
-  // Meta
-  const meta = document.createElement("div");
-  meta.className = "pd-rec-card-meta";
-
-  const titleEl = document.createElement("h3");
-  titleEl.className = "pd-rec-card-title";
-  titleEl.textContent = title || "";
-  meta.append(titleEl);
-
-  if (targetAudience && targetAudience.length > 0) {
-    const audienceEl = document.createElement("p");
-    audienceEl.className = "pd-rec-card-audience";
-    const label = document.createElement("strong");
-    label.textContent = "Target: ";
-    audienceEl.append(label, targetAudience.join(", "));
-    meta.append(audienceEl);
-  }
-
-  if (year || buyout) {
-    const buyoutEl = document.createElement("p");
-    buyoutEl.className = "pd-rec-card-buyout";
-    const parts = [];
-    if (year) {
-      const yearLabel = document.createElement("strong");
-      yearLabel.textContent = "Year: ";
-      parts.push(yearLabel, String(year));
-    }
-    if (year && buyout) parts.push(" | ");
-    if (buyout) {
-      const buyoutLabel = document.createElement("strong");
-      buyoutLabel.textContent = "Buyout: ";
-      parts.push(buyoutLabel, buyout);
-    }
-    buyoutEl.append(...parts);
-    meta.append(buyoutEl);
-  }
-
-  // Footer: Product button + star rating
-  const footer = document.createElement("div");
-  footer.className = "pd-rec-card-footer";
-
-  const productBtn = document.createElement("button");
-  productBtn.className = "pd-rec-card-product-btn";
-  productBtn.textContent = "Product";
-  productBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (sku) window.location.href = productUrl;
-  });
-  footer.append(productBtn);
-
-  if (rating != null) footer.append(buildStarRating(rating));
-
-  meta.append(footer);
-  card.append(imgWrap, meta);
-  wrapper.append(card);
-
-  return wrapper;
-}
 
 function buildProductDetail(product, isAuthor, eventConfig = {}) {
   const {
@@ -498,8 +388,10 @@ function buildRecommendations(currentProduct, allProducts, isAuthor) {
   titleEl.textContent = "YOU MAY ALSO LIKE";
 
   const grid = document.createElement("div");
-  grid.className = "pd-rec-grid";
-  recommendations.forEach((p) => grid.append(buildRecommendationCard(p, isAuthor)));
+  grid.className = "cpl-grid";
+  grid.style.setProperty("--cpl-gap", "24px");
+  grid.style.setProperty("--cpl-card-width", "calc((100% - 3 * 24px) / 4)");
+  recommendations.forEach((p) => grid.append(buildCard(p, isAuthor)));
 
   section.append(titleEl, grid);
   return section;
@@ -509,6 +401,9 @@ export default async function decorate(block) {
   const isTruthy = (v) => v === true || String(v || '').trim().toLowerCase() === 'true';
   const isAuthor = isAuthorEnvironment();
   const config = readBlockConfig(block);
+
+  // Load cpl CSS so the reused cpl-card classes are styled correctly
+  loadCSS(`${window.hlx?.codeBasePath || ''}/blocks/category-products-lister/category-products-lister.css`);
 
   const eventConfig = {
     productView: (config.productvieweventtype || config['product-view-event-type'] || '').trim(),
