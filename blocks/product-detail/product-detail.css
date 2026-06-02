@@ -409,9 +409,12 @@ main .product-detail .pd-rec-title {
 
 /* Scrollable row — same behaviour as cpl-grid */
 main .product-detail .pd-rec-grid {
+  --rec-gap: 24px;
+  --rec-cols: 4;
+  width: 100%;
   display: flex;
   flex-wrap: nowrap;
-  gap: 24px;
+  gap: var(--rec-gap);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -423,11 +426,13 @@ main .product-detail .pd-rec-grid::-webkit-scrollbar {
   display: none;
 }
 
-/* Card wrapper */
+/* Card wrapper — 4 visible cards per row, additional cards scroll into view */
 main .product-detail .pd-rec-card-wrapper {
   display: flex;
   flex-direction: column;
-  flex: 0 0 260px;
+  flex: 0 0 calc((100% - (var(--rec-cols) - 1) * var(--rec-gap)) / var(--rec-cols));
+  width: calc((100% - (var(--rec-cols) - 1) * var(--rec-gap)) / var(--rec-cols));
+  min-width: 0;
   scroll-snap-align: start;
 }
 
@@ -451,10 +456,11 @@ main .product-detail .pd-rec-card:hover {
   box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
 }
 
-/* Media — matches .cpl-card-media */
+/* Media — matches .cpl-card-media; max-height prevents oversized cards at full viewport width */
 main .product-detail .pd-rec-card-media {
   position: relative;
   aspect-ratio: 3 / 4;
+  max-height: 300px;
   overflow: hidden;
   background-color: #0000000a;
 }
