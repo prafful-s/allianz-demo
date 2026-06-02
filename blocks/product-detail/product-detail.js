@@ -1,4 +1,4 @@
-import { createLumaProductImagePicture, readBlockConfig } from "../../scripts/aem.js";
+import { createProductImage, readBlockConfig } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
 import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
@@ -168,7 +168,7 @@ function buildRecommendationCard(item, isAuthor) {
 
   let picture = null;
   if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createLumaProductImagePicture(damImageURL, name || "Product image", {
+    picture = createProductImage(damImageURL, name || "Product image", {
       isAuthor,
       eager: false,
     });
@@ -252,7 +252,7 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
   imageSection.className = "pd-image";
 
   if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    const picture = createLumaProductImagePicture(damImageURL, name || "Product image", {
+    const picture = createProductImage(damImageURL, name || "Product image", {
       isAuthor,
       eager: true,
     });

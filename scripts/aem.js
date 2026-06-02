@@ -351,10 +351,10 @@ function getMetadata(name, doc = document) {
  * @returns {string|null}
  * @see https://experienceleague.adobe.com/en/docs/experience-manager-learn/getting-started-with-aem-headless/how-to/images
  */
-function resolveAemDynamicImageHref(damImageURL) {
+function resolveAemDynamicImageHref(damImageURL, isAuthor = false) {
   const { _dynamicUrl, _publishUrl, _authorUrl } = damImageURL || {};
   if (!_dynamicUrl) return null;
-  const originRef = _publishUrl || _authorUrl;
+  const originRef = isAuthor ? (_authorUrl || _publishUrl) : (_publishUrl || _authorUrl);
   try {
     if (_dynamicUrl.startsWith('http://') || _dynamicUrl.startsWith('https://')) {
       return _dynamicUrl;
@@ -386,8 +386,9 @@ function createResponsiveAemDamPicture(
   widths = [320, 640],
   sizes = '200px',
   fetchpriority = null,
+  isAuthor = false,
 ) {
-  const baseHref = resolveAemDynamicImageHref(damImageURL);
+  const baseHref = resolveAemDynamicImageHref(damImageURL, isAuthor);
   if (!baseHref) return null;
 
   const sorted = [...widths].sort((a, b) => b - a);
@@ -433,7 +434,7 @@ function createResponsiveAemDamPicture(
  * @param {{ isAuthor?: boolean, eager?: boolean }} options eager=true uses larger renditions (PDP hero)
  * @returns {HTMLPictureElement|null}
  */
-function createLumaProductImagePicture(damImageURL, alt = '', { isAuthor = false, eager = false } = {}) {
+function createProductImage(damImageURL, alt = '', { isAuthor = false, eager = false } = {}) {
   if (damImageURL?._dynamicUrl && (damImageURL._publishUrl || damImageURL._authorUrl)) {
     const listingWidths = [240, 480];
     const detailWidths = [480, 960, 1200];
@@ -441,7 +442,7 @@ function createLumaProductImagePicture(damImageURL, alt = '', { isAuthor = false
     const detailSizes = '(max-width: 900px) 100vw, min(640px, 55vw)';
     const widths = eager ? detailWidths : listingWidths;
     const sizes = eager ? detailSizes : listingSizes;
-    const pic = createResponsiveAemDamPicture(damImageURL, alt, eager, widths, sizes);
+    const pic = createResponsiveAemDamPicture(damImageURL, alt, eager, widths, sizes, null, isAuthor);
     if (pic) return pic;
   }
 
@@ -1353,7 +1354,7 @@ init();
 export {
   applySectionItemWidths,
   buildBlock,
-  createLumaProductImagePicture,
+  createProductImage,
   createOptimizedPicture,
   createResponsiveAemDamPicture,
   decorateBlock,

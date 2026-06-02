@@ -1,4 +1,4 @@
-import { readBlockConfig, createLumaProductImagePicture } from "../../scripts/aem.js";
+import { readBlockConfig, createProductImage } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
 
 const AUTHOR_PRODUCTS_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
@@ -51,7 +51,7 @@ function buildCard(item, isAuthor) {
 
   let picture = null;
   if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
-    picture = createLumaProductImagePicture(imageFile, title || "Product image", {
+    picture = createProductImage(imageFile, title || "Product image", {
       isAuthor,
       eager: false,
     });

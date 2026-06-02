@@ -1,4 +1,4 @@
-import { createLumaProductImagePicture, createOptimizedPicture, readBlockConfig } from "../../scripts/aem.js";
+import { createProductImage, createOptimizedPicture, readBlockConfig } from "../../scripts/aem.js";
 import { isAuthorEnvironment } from "../../scripts/scripts.js";
 import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
 
@@ -560,7 +560,7 @@ function buildRecommendationCard(item, isAuthor) {
 
   let picture = null;
   if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createLumaProductImagePicture(damImageURL, name || "Product image", {
+    picture = createProductImage(damImageURL, name || "Product image", {
       isAuthor,
       eager: false,
     });

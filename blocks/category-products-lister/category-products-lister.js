@@ -1,4 +1,4 @@
-import { readBlockConfig, createLumaProductImagePicture } from "../../scripts/aem.js";
+import { readBlockConfig, createProductImage } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeAemPath, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
 import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
@@ -83,7 +83,7 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
 
   let picture = null;
   if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createLumaProductImagePicture(damImageURL, name || "Product image", {
+    picture = createProductImage(damImageURL, name || "Product image", {
       isAuthor,
       eager: false,
     });
@@ -249,7 +249,7 @@ function renderCarousel(block, items, cfg, isAuthor, redirectUrl = "") {
     if (i === 0) slide.classList.add("active");
 
     if (damImageURL && (damImageURL._publishUrl || damImageURL._authorUrl || damImageURL._dynamicUrl)) {
-      const picture = createLumaProductImagePicture(damImageURL, item.name || "Product image", {
+      const picture = createProductImage(damImageURL, item.name || "Product image", {
         isAuthor,
         eager: i === 0,
       });
