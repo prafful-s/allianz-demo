@@ -1,32 +1,12 @@
 import { readBlockConfig, createLumaProductImagePicture } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
-import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
 
-const AUTHOR_PRODUCTS_ENDPOINT = "/graphql/execute.json/dsn-eds-configuration/productsListByPath;";
-const PUBLISH_GRAPHQL_PROXY_ENDPOINT = "https://275323-918sangriatortoise.adobeioruntime.net/api/v1/web/dx-excshell-1/fetch-product-information";
-const PUBLISH_PRODUCTS_ENDPOINT_KEY = "productsListByPath";
-let newArrivalAuthorBasePromise;
-let newArrivalPublishEnvironmentPromise;
-
-async function getNewArrivalAuthorBase() {
-  if (!newArrivalAuthorBasePromise) {
-    newArrivalAuthorBasePromise = getHostname()
-      .then((hostname) => (hostname || window.location.origin || "").replace(/\/$/, ""))
-      .catch(() => (window.location.origin || "").replace(/\/$/, ""));
-  }
-  return newArrivalAuthorBasePromise;
-}
-
-async function getNewArrivalPublishEnvironment() {
-  if (!newArrivalPublishEnvironmentPromise) {
-    newArrivalPublishEnvironmentPromise = getEnvironmentValue().catch(() => undefined);
-  }
-  return newArrivalPublishEnvironmentPromise;
-}
+const AUTHOR_PRODUCTS_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
+const PUBLISH_PRODUCTS_ENDPOINT = "https://publish-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
 
 function buildCard(item, isAuthor) {
-  const { id, sku, name, damImageURL = {}, category = [] } = item || {};
-  const productId = sku || id || "";
+  const { sku, title, imageFile = {}, category, buyout } = item || {};
+  const productId = sku || "";
 
   const card = document.createElement("article");
   card.className = "na-card";
@@ -60,7 +40,6 @@ function buildCard(item, isAuthor) {
         }
       }
 
-      // On author add .html extension, on publish don't
       const productPath = isAuthor
         ? `${basePath}/product.html`
         : `${basePath}/product`;
@@ -71,8 +50,8 @@ function buildCard(item, isAuthor) {
   }
 
   let picture = null;
-  if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createLumaProductImagePicture(damImageURL, name || "Product image", {
+  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
+    picture = createLumaProductImagePicture(imageFile, title || "Product image", {
       isAuthor,
       eager: false,
     });
@@ -86,14 +65,14 @@ function buildCard(item, isAuthor) {
   meta.className = "na-card-meta";
   const cat = document.createElement("p");
   cat.className = "na-card-category";
-  cat.textContent = category
-    .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-    .filter(Boolean)
-    .join(" / ");
-  const title = document.createElement("h3");
-  title.className = "na-card-title";
-  title.textContent = name || "";
-  meta.append(cat, title);
+  cat.textContent = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
+  const titleEl = document.createElement("h3");
+  titleEl.className = "na-card-title";
+  titleEl.textContent = title || "";
+  const priceEl = document.createElement("p");
+  priceEl.className = "na-card-price";
+  priceEl.textContent = buyout || "";
+  meta.append(cat, titleEl, priceEl);
 
   card.append(imgWrap, meta);
   return card;
@@ -102,11 +81,9 @@ function buildCard(item, isAuthor) {
 async function fetchProducts(path, isAuthor) {
   try {
     if (!path) return [];
-    const authorBase = await getNewArrivalAuthorBase();
-    const environment = await getNewArrivalPublishEnvironment();
     const url = isAuthor
-      ? `${authorBase}${AUTHOR_PRODUCTS_ENDPOINT}_path=${path}`
-      : `${PUBLISH_GRAPHQL_PROXY_ENDPOINT}?endpoint=${PUBLISH_PRODUCTS_ENDPOINT_KEY}${environment ? `&environment=${environment}` : ''}&_path=${path}`;
+      ? `${AUTHOR_PRODUCTS_ENDPOINT}${path}`
+      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
     const resp = await fetch(url, {
       method: "GET",
       headers: {
@@ -115,8 +92,7 @@ async function fetchProducts(path, isAuthor) {
       },
     });
     const json = await resp.json();
-    const items = json?.data?.productModelList?.items || [];
-    // Filter out null/invalid products
+    const items = json?.data?.allianzProductModelList?.items || [];
     return items.filter((item) => item && item.sku);
   } catch (e) {
     // eslint-disable-next-line no-console
