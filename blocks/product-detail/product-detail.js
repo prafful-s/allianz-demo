@@ -1,60 +1,61 @@
 import { createProductImage, readBlockConfig } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
-import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
 
-const AUTHOR_PRODUCT_DETAIL_ENDPOINT = "/graphql/execute.json/dsn-eds-configuration/productDescriptionByPathAndSKU;";
-const PUBLISH_GRAPHQL_PROXY_ENDPOINT = "https://275323-918sangriatortoise.adobeioruntime.net/api/v1/web/dx-excshell-1/fetch-product-information";
-const PUBLISH_PRODUCT_DETAIL_ENDPOINT_KEY = "productDescriptionByPathAndSKU";
-const AUTHOR_PRODUCTS_ENDPOINT = "/graphql/execute.json/dsn-eds-configuration/productsListByPath;";
-const PUBLISH_PRODUCTS_ENDPOINT_KEY = "productsListByPath";
-let productDetailAuthorBasePromise;
-let productDetailPublishEnvironmentPromise;
+const AUTHOR_PRODUCT_DETAIL_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProductDetails;";
+const PUBLISH_PRODUCT_DETAIL_ENDPOINT = "https://publish-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProductDetails;";
+const AUTHOR_PRODUCTS_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
+const PUBLISH_PRODUCTS_ENDPOINT = "https://publish-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
 
-async function getProductDetailAuthorBase() {
-  if (!productDetailAuthorBasePromise) {
-    productDetailAuthorBasePromise = getHostname()
-      .then((hostname) => (hostname || window.location.origin || "").replace(/\/$/, ""))
-      .catch(() => (window.location.origin || "").replace(/\/$/, ""));
-  }
-  return productDetailAuthorBasePromise;
+const STATIC_DETAILS = [
+  {
+    label: "Business objectives",
+    separator: " – ",
+    text: "Providing context for the marketing activity through indicating the challenges that were addressed or the main objectives",
+  },
+  {
+    label: "Activity summary",
+    separator: ": ",
+    text: "Overview of involved channels and available asset formats (static, motion picture, audio), CTA, timings, lessons learned or other insights valuable to share incl. key visuals",
+  },
+  {
+    label: "KPIs",
+    separator: ": ",
+    text: "Based on comparable KPIs e.g., view-through-rate, click-rate, conversion rate or digital NPS uplift",
+  },
+  {
+    label: "Agency",
+    separator: ": ",
+    text: "Agency name, potentially contact at agency",
+  },
+];
+
+const COUNTRY_FLAGS = {
+  de: "🇩🇪", germany: "🇩🇪", deutschland: "🇩🇪",
+  fr: "🇫🇷", france: "🇫🇷",
+  gb: "🇬🇧", uk: "🇬🇧", "united kingdom": "🇬🇧",
+  us: "🇺🇸", usa: "🇺🇸",
+  it: "🇮🇹", italy: "🇮🇹",
+  es: "🇪🇸", spain: "🇪🇸",
+  nl: "🇳🇱", netherlands: "🇳🇱",
+  ch: "🇨🇭", switzerland: "🇨🇭",
+  at: "🇦🇹", austria: "🇦🇹",
+  pl: "🇵🇱", poland: "🇵🇱",
+};
+
+function getCountryFlag(name) {
+  return name ? (COUNTRY_FLAGS[name.toLowerCase().trim()] || "") : "";
 }
 
-async function getProductDetailPublishEnvironment() {
-  if (!productDetailPublishEnvironmentPromise) {
-    productDetailPublishEnvironmentPromise = getEnvironmentValue().catch(() => undefined);
-  }
-  return productDetailPublishEnvironmentPromise;
-}
-
-/**
- * Get query parameter from URL
- * @param {string} param - Parameter name
- * @returns {string|null} - Parameter value
- */
 function getQueryParam(param) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
+  return new URLSearchParams(window.location.search).get(param);
 }
 
-/**
- * Update the page title with the selected product name
- * @param {Object} product - Product data
- */
 function updatePageTitle(product) {
-  const productTitle = (product?.name || "").trim();
-  if (productTitle) {
-    document.title = productTitle;
-  }
+  const t = (product?.title || "").trim();
+  if (t) document.title = t;
 }
 
-/**
- * Fetch product details from GraphQL
- * @param {string} path - Content fragment folder path
- * @param {string} sku - Product SKU
- * @param {boolean} isAuthor - Is author environment
- * @returns {Promise<Object|null>} - Product data
- */
 async function fetchProductDetail(path, sku, isAuthor) {
   try {
     if (!path || !sku) {
@@ -62,21 +63,13 @@ async function fetchProductDetail(path, sku, isAuthor) {
       console.error("Product Detail: Missing path or SKU");
       return null;
     }
-    const skuItem = isAuthor ? `;sku=${sku}` : `&sku=${sku}`;
-    const authorBase = await getProductDetailAuthorBase();
-    const environment = await getProductDetailPublishEnvironment();
-    const url = isAuthor
-      ? `${authorBase}${AUTHOR_PRODUCT_DETAIL_ENDPOINT}_path=${path}${skuItem}`
-      : `${PUBLISH_GRAPHQL_PROXY_ENDPOINT}?endpoint=${PUBLISH_PRODUCT_DETAIL_ENDPOINT_KEY}${environment ? `&environment=${environment}` : ''}&_path=${path};sku=${sku}`;
-    const resp = await fetch(url, {
+    const base = isAuthor ? AUTHOR_PRODUCT_DETAIL_ENDPOINT : PUBLISH_PRODUCT_DETAIL_ENDPOINT;
+    const resp = await fetch(`${base}_path=${path};sku=${sku}`, {
       method: "GET",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate", Pragma: "no-cache" },
     });
     const json = await resp.json();
-    const items = json?.data?.productModelList?.items || [];
+    const items = json?.data?.allianzProductModelList?.items || [];
     return items.length > 0 ? items[0] : null;
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -85,33 +78,18 @@ async function fetchProductDetail(path, sku, isAuthor) {
   }
 }
 
-/**
- * Fetch all products from a folder
- * @param {string} path - Content fragment folder path
- * @param {boolean} isAuthor - Is author environment
- * @returns {Promise<Array>} - Array of products
- */
 async function fetchAllProducts(path, isAuthor) {
   try {
-    if (!path) {
-      return [];
-    }
-    const authorBase = await getProductDetailAuthorBase();
-    const environment = await getProductDetailPublishEnvironment();
+    if (!path) return [];
     const url = isAuthor
-      ? `${authorBase}${AUTHOR_PRODUCTS_ENDPOINT}_path=${path}`
-      : `${PUBLISH_GRAPHQL_PROXY_ENDPOINT}?endpoint=${PUBLISH_PRODUCTS_ENDPOINT_KEY}${environment ? `&environment=${environment}` : ''}&_path=${path}`;
+      ? `${AUTHOR_PRODUCTS_ENDPOINT}${path}`
+      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
     const resp = await fetch(url, {
       method: "GET",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate", Pragma: "no-cache" },
     });
     const json = await resp.json();
-    const items = json?.data?.productModelList?.items || [];
-    const filtered = items.filter((item) => item && item.sku);
-    return filtered;
+    return (json?.data?.allianzProductModelList?.items || []).filter((item) => item?.sku);
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("Product Detail: fetch all products error", e);
@@ -119,411 +97,368 @@ async function fetchAllProducts(path, isAuthor) {
   }
 }
 
-/**
- * Build a recommendation card
- * @param {Object} item - Product data
- * @param {boolean} isAuthor - Is author environment
- * @returns {HTMLElement} - Product card
- */
 function buildRecommendationCard(item, isAuthor) {
-  const { id, sku, name, damImageURL = {}, category = [] } = item || {};
-  const productId = sku || id || "";
+  const { sku, title, imageFile = {}, category } = item || {};
 
   const card = document.createElement("article");
   card.className = "pd-rec-card";
 
-  // Make card clickable and redirect to product page
-  if (productId) {
+  if (sku) {
     card.style.cursor = "pointer";
     card.addEventListener("click", () => {
       const currentPath = window.location.pathname;
-
-      // Smart path construction: ensure we navigate to the correct product page
       let basePath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-
-      // If the current page doesn't have a language segment, try to add it
-      const langPattern = /\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)$/;
-      if (!langPattern.test(basePath) && !basePath.includes("/en/")) {
-        const pathMatch = currentPath.match(
-          /\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)\//
-        );
-        if (pathMatch) {
-          const langCode = pathMatch[1];
-          const langIndex = currentPath.indexOf(`/${langCode}/`);
-          basePath = currentPath.substring(0, langIndex + langCode.length + 1);
-        } else {
-          basePath = `${basePath}/en`;
-        }
+      const pathMatch = currentPath.match(/\/(en|fr|de|es|it|ja|zh|pt|nl|sv|da|no|fi)\//);
+      if (pathMatch) {
+        const langCode = pathMatch[1];
+        basePath = currentPath.substring(0, currentPath.indexOf(`/${langCode}/`) + langCode.length + 1);
       }
-
-      // On author add .html extension, on publish don't
-      const productPath = isAuthor
-        ? `${basePath}/product.html`
-        : `${basePath}/product`;
-      window.location.href = `${productPath}?productId=${encodeURIComponent(
-        productId
-      )}`;
-    });
-  }
-
-  let picture = null;
-  if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createProductImage(damImageURL, name || "Product image", {
-      isAuthor,
-      eager: false,
+      const productPath = isAuthor ? `${basePath}/product.html` : `${basePath}/product`;
+      window.location.href = `${productPath}?productId=${encodeURIComponent(sku)}`;
     });
   }
 
   const imgWrap = document.createElement("div");
   imgWrap.className = "pd-rec-card-media";
-  if (picture) imgWrap.append(picture);
+  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
+    const picture = createProductImage(imageFile, title || "Product image", { isAuthor, eager: false });
+    if (picture) imgWrap.append(picture);
+  }
 
   const meta = document.createElement("div");
   meta.className = "pd-rec-card-meta";
+
   const cat = document.createElement("p");
   cat.className = "pd-rec-card-category";
-  cat.textContent = category
-    .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-    .filter(Boolean)
-    .join(" / ");
-  const title = document.createElement("h3");
-  title.className = "pd-rec-card-title";
-  title.textContent = name || "";
-  meta.append(cat, title);
+  cat.textContent = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
 
+  const titleEl = document.createElement("h3");
+  titleEl.className = "pd-rec-card-title";
+  titleEl.textContent = title || "";
+
+  meta.append(cat, titleEl);
   card.append(imgWrap, meta);
   return card;
 }
 
-/**
- * Build product detail view
- * @param {Object} product - Product data
- * @param {boolean} isAuthor - Is author environment
- * @returns {HTMLElement} - Product detail container
- */
 function buildProductDetail(product, isAuthor, eventConfig = {}) {
   const {
-    name,
-    price,
-    category = [],
+    title = "",
+    buyout = "",
+    category = "",
     description = {},
-    damImageURL = {},
-    sku,
-    id,
+    imageFile = {},
+    sku = "",
+    targetAudience = [],
+    year,
+    country = [],
   } = product;
-  const isPlansCategory = (category || [])
-    .map((catValue) => normalizeCategoryValue(catValue).toLowerCase().trim())
-    .some((catValue) => catValue === "plans" || catValue.endsWith("/plans"));
 
-  // Update dataLayer with product information
-  // If dataLayer is not ready, the update will be queued automatically
-  const imageUrl = isAuthor ? damImageURL?._authorUrl : damImageURL?._publishUrl;
-
-  const productData = {
-    id: id || sku || "",
-    sku: sku || "",
-    name: name || "",
-    price: price || 0,
-    category:
-      category.length > 0
-        ? category
-            .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-            .join(", ")
-        : "",
-    description: description?.html || description?.markdown || "",
-    image: imageUrl || "",
-    thumbnail: imageUrl || "",
-  };
-
+  const imageUrl = isAuthor ? imageFile?._authorUrl : imageFile?._publishUrl;
   if (typeof window.updateDataLayer === "function") {
-    window.updateDataLayer({ product: productData });
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "⚠️ window.updateDataLayer not available, product data not sent"
-    );
+    window.updateDataLayer({
+      product: {
+        id: sku, sku, name: title, price: buyout,
+        category: category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "",
+        description: description?.plaintext || description?.html || description?.markdown || "",
+        image: imageUrl || "", thumbnail: imageUrl || "",
+      },
+    });
   }
 
   const container = document.createElement("div");
   container.className = "pd-container";
 
-  // Image section
+  // ── Left: Image ──────────────────────────────────────────────────────────
   const imageSection = document.createElement("div");
   imageSection.className = "pd-image";
-
-  if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    const picture = createProductImage(damImageURL, name || "Product image", {
-      isAuthor,
-      eager: true,
-    });
+  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
+    const picture = createProductImage(imageFile, title || "Product image", { isAuthor, eager: true });
     if (picture) imageSection.appendChild(picture);
   }
 
-  // Content section
+  // ── Right: Content panel ─────────────────────────────────────────────────
   const contentSection = document.createElement("div");
   contentSection.className = "pd-content";
 
-  // Category
-  if (category && category.length > 0) {
-    const categoryText = category
-      .map(
-        (catValue) =>
-          normalizeCategoryValue(catValue)
-            .replace(/\//g, " / ") // Replace slashes with /
-      )
-      .join(" / ");
-    const categoryEl = document.createElement("p");
-    categoryEl.className = "pd-category";
-    categoryEl.textContent = categoryText;
-    contentSection.appendChild(categoryEl);
+  // Metadata bar: Origin OE | Content type
+  const metaItems = [];
+
+  if (country && country.length > 0) {
+    const flag = getCountryFlag(country[0]);
+    metaItems.push({ label: "Origin OE", display: flag || country[0], isFlag: !!flag });
   }
 
-  // Name
+  if (category) {
+    metaItems.push({ label: "Content type", display: normalizeCategoryValue(category).replace(/\//g, " / ") });
+  }
+
+  if (metaItems.length > 0) {
+    const metaBar = document.createElement("div");
+    metaBar.className = "pd-meta-bar";
+
+    metaItems.forEach((item, i) => {
+      const el = document.createElement("div");
+      el.className = "pd-meta-item";
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "pd-meta-label";
+      labelEl.textContent = item.label;
+
+      const valueEl = document.createElement("span");
+      valueEl.className = item.isFlag ? "pd-meta-flag" : "pd-meta-value";
+      valueEl.textContent = item.display;
+
+      el.append(labelEl, valueEl);
+      metaBar.append(el);
+
+      if (i < metaItems.length - 1) {
+        const divider = document.createElement("div");
+        divider.className = "pd-meta-divider";
+        metaBar.append(divider);
+      }
+    });
+
+    contentSection.appendChild(metaBar);
+  }
+
+  // Campaign Name label
+  const campaignLabel = document.createElement("p");
+  campaignLabel.className = "pd-campaign-label";
+  campaignLabel.textContent = "Campaign Name";
+  contentSection.appendChild(campaignLabel);
+
+  // Title
   const nameEl = document.createElement("h1");
   nameEl.className = "pd-name";
-  nameEl.textContent = name || "";
+  nameEl.textContent = title;
   contentSection.appendChild(nameEl);
 
-  // Price
-  if (price) {
-    const priceEl = document.createElement("p");
-    priceEl.className = "pd-price";
-    priceEl.textContent = `$${price}`;
-    contentSection.appendChild(priceEl);
+  // Description
+  const descText = description?.plaintext || description?.html || description?.markdown || "";
+  if (descText) {
+    if (description?.html) {
+      const descEl = document.createElement("div");
+      descEl.className = "pd-description";
+      descEl.innerHTML = description.html;
+      contentSection.appendChild(descEl);
+    } else {
+      const descEl = document.createElement("p");
+      descEl.className = "pd-description";
+      descEl.textContent = descText;
+      contentSection.appendChild(descEl);
+    }
   }
 
-  // Description (using HTML format)
-  if (description?.html) {
-    const descEl = document.createElement("div");
-    descEl.className = "pd-description";
-    descEl.innerHTML = description.html;
-    contentSection.appendChild(descEl);
+  // Details list
+  const detailsList = document.createElement("ul");
+  detailsList.className = "pd-details-list";
+
+  if (year) {
+    const li = document.createElement("li");
+    const strong = document.createElement("strong");
+    strong.textContent = "Year: ";
+    li.append(strong, String(year));
+    detailsList.append(li);
+  }
+
+  if (targetAudience && targetAudience.length > 0) {
+    const li = document.createElement("li");
+    const strong = document.createElement("strong");
+    strong.textContent = "Target audience: ";
+    li.append(strong, targetAudience.join(", "));
+    detailsList.append(li);
+  }
+
+  STATIC_DETAILS.forEach(({ label, separator, text }) => {
+    const li = document.createElement("li");
+    const strong = document.createElement("strong");
+    strong.textContent = label;
+    li.append(strong, separator, text);
+    detailsList.append(li);
+  });
+
+  contentSection.appendChild(detailsList);
+
+  // Buyout costs pricing box
+  if (buyout) {
+    const pricingSection = document.createElement("div");
+    pricingSection.className = "pd-pricing";
+
+    const box = document.createElement("div");
+    box.className = "pd-pricing-box";
+
+    const boxTitle = document.createElement("span");
+    boxTitle.className = "pd-pricing-box-title";
+    boxTitle.textContent = "Buyout costs";
+
+    const boxSub = document.createElement("span");
+    boxSub.className = "pd-pricing-box-sub";
+    boxSub.textContent = "1 year / digital channels";
+
+    const boxValue = document.createElement("span");
+    boxValue.className = "pd-pricing-box-value";
+    boxValue.textContent = `from ${buyout}`;
+
+    box.append(boxTitle, boxSub, boxValue);
+    pricingSection.appendChild(box);
+    contentSection.appendChild(pricingSection);
+  }
+
+  // Rights available until (derived from year)
+  if (year) {
+    const rightsEl = document.createElement("div");
+    rightsEl.className = "pd-rights";
+
+    const rightsLabel = document.createElement("p");
+    rightsLabel.className = "pd-rights-label";
+    rightsLabel.textContent = "Rights available until";
+
+    const rightsValue = document.createElement("p");
+    rightsValue.className = "pd-rights-value";
+    rightsValue.textContent = `12/${year + 3}`;
+
+    rightsEl.append(rightsLabel, rightsValue);
+    contentSection.appendChild(rightsEl);
   }
 
   // Action buttons
-
   const actionsEl = document.createElement("div");
   actionsEl.className = "pd-actions";
 
-  // Add to Cart button (conditionally rendered)
   if (eventConfig.showAddToCartButton !== false) {
     const addToCartBtn = document.createElement("button");
     addToCartBtn.className = "pd-btn pd-btn-primary";
-    addToCartBtn.textContent = "Add to Cart";
-    addToCartBtn.setAttribute("aria-label", `Add ${name} to cart`);
+    addToCartBtn.textContent = "Add to cart";
+    addToCartBtn.setAttribute("aria-label", `Add ${title} to cart`);
     addToCartBtn.addEventListener("click", () => {
-      const cartImageUrl = isAuthor ? damImageURL?._authorUrl : damImageURL?._publishUrl;
-      const formattedCategory =
-        category.length > 0
-          ? category
-              .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-              .join(", ")
-          : "";
-
+      const cartImageUrl = isAuthor ? imageFile?._authorUrl : imageFile?._publishUrl;
       window.addToCart({
-        id: id || sku || "",
-        name: name || "",
-        image: cartImageUrl || "",
-        thumbnail: cartImageUrl || "",
-        category: formattedCategory,
-        description: description?.html || description?.markdown || "",
-        price: price || 0,
-        quantity: 1,
+        id: sku, name: title,
+        image: cartImageUrl || "", thumbnail: cartImageUrl || "",
+        category: category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "",
+        description: description?.plaintext || description?.html || description?.markdown || "",
+        price: buyout || 0, quantity: 1,
       });
-      if (eventConfig.addToCart) {
-        dispatchCustomEvent(eventConfig.addToCart);
-      }
-
-      // Show visual feedback
-      addToCartBtn.textContent = "Added to Cart ✓";
-      setTimeout(() => {
-        addToCartBtn.textContent = "Add to Cart";
-      }, 2000);
+      if (eventConfig.addToCart) dispatchCustomEvent(eventConfig.addToCart);
+      addToCartBtn.textContent = "Added to cart ✓";
+      setTimeout(() => { addToCartBtn.textContent = "Add to cart"; }, 2000);
     });
     actionsEl.append(addToCartBtn);
   }
 
-  if (isPlansCategory) {
-    const selectDeviceBtn = document.createElement("button");
-    selectDeviceBtn.className = "pd-btn pd-btn-secondary";
-    selectDeviceBtn.textContent = "Select a device";
-    selectDeviceBtn.setAttribute("aria-label", "Select a device");
-    selectDeviceBtn.addEventListener("click", () => {
-      window.location.href = "/en/phones";
-    });
-    actionsEl.append(selectDeviceBtn);
-  }
-
   if (eventConfig.showAddToWishlistButton) {
-    const addToWishlistBtn = document.createElement("button");
-    addToWishlistBtn.className = "pd-btn pd-btn-secondary";
-    addToWishlistBtn.textContent = "Add to Wishlist";
-    addToWishlistBtn.setAttribute("aria-label", `Add ${name} to wishlist`);
-    addToWishlistBtn.addEventListener("click", () => {
-      if (eventConfig.addToWishlist) {
-        dispatchCustomEvent(eventConfig.addToWishlist);
-      }
+    const wishlistBtn = document.createElement("button");
+    wishlistBtn.className = "pd-btn pd-btn-icon";
+    wishlistBtn.setAttribute("aria-label", `Add ${title} to wishlist`);
+    // eslint-disable-next-line no-unsanitized/property
+    wishlistBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+    wishlistBtn.addEventListener("click", () => {
+      if (eventConfig.addToWishlist) dispatchCustomEvent(eventConfig.addToWishlist);
     });
-    actionsEl.append(addToWishlistBtn);
+    actionsEl.append(wishlistBtn);
   }
 
   contentSection.appendChild(actionsEl);
-
   container.append(imageSection, contentSection);
   return container;
 }
 
-/**
- * Build "You May Also Like" recommendations section
- * @param {Object} currentProduct - Current product data
- * @param {Array} allProducts - All products from the folder
- * @param {boolean} isAuthor - Is author environment
- * @returns {HTMLElement|null} - Recommendations section or null
- */
 function buildRecommendations(currentProduct, allProducts, isAuthor) {
-  const { sku: currentSku, category: currentCategories = [] } = currentProduct;
+  const { sku: currentSku, category: currentCategory } = currentProduct;
+  if (!currentCategory) return null;
 
-  if (!currentCategories || currentCategories.length === 0) {
-    return null;
-  }
-
-  // Filter products by matching category
   const recommendations = allProducts
-    .filter((product) => {
-      // Exclude current product
-      if (product.sku === currentSku) return false;
+    .filter((p) => p.sku !== currentSku && p.category === currentCategory)
+    .slice(0, 5);
 
-      // Check if product has any matching category
-      const productCategories = product.category || [];
-      return productCategories.some((cat) => currentCategories.includes(cat));
-    })
-    .slice(0, 5); // Limit to 5 products
+  if (!recommendations.length) return null;
 
-  if (recommendations.length === 0) {
-    return null;
-  }
-
-  // Build recommendations section
   const section = document.createElement("div");
   section.className = "pd-recommendations";
 
-  const title = document.createElement("h2");
-  title.className = "pd-rec-title";
-  title.textContent = "YOU MAY ALSO LIKE";
+  const titleEl = document.createElement("h2");
+  titleEl.className = "pd-rec-title";
+  titleEl.textContent = "YOU MAY ALSO LIKE";
 
   const grid = document.createElement("div");
   grid.className = "pd-rec-grid";
+  recommendations.forEach((p) => grid.append(buildRecommendationCard(p, isAuthor)));
 
-  recommendations.forEach((product) => {
-    const card = buildRecommendationCard(product, isAuthor);
-    grid.append(card);
-  });
-
-  section.append(title, grid);
-
+  section.append(titleEl, grid);
   return section;
 }
 
-/**
- * Decorate the product detail block
- * @param {HTMLElement} block - The block element
- */
 export default async function decorate(block) {
-  const isTruthy = (value) => value === true || String(value || '').trim().toLowerCase() === 'true';
+  const isTruthy = (v) => v === true || String(v || '').trim().toLowerCase() === 'true';
   const isAuthor = isAuthorEnvironment();
-
-  // Read block config for authorable event types and folder path
   const config = readBlockConfig(block);
+
   const eventConfig = {
     productView: (config.productvieweventtype || config['product-view-event-type'] || '').trim(),
     addToCart: (config.addtocarteventtype || config['add-to-cart-event-type'] || '').trim(),
     addToWishlist: (config.addtowishlisteventtype || config['add-to-wishlist-event-type'] || '').trim(),
-    showAddToCartButton: (config.showaddtocartbutton === undefined && config['show-add-to-cart-button'] === undefined)
-      ? true
-      : isTruthy(config.showaddtocartbutton ?? config['show-add-to-cart-button']),
-    showAddToWishlistButton: (config.showaddtowishlistbutton === undefined && config['show-add-to-wishlist-button'] === undefined)
-      ? true
-      : isTruthy(config.showaddtowishlistbutton ?? config['show-add-to-wishlist-button']),
-    showYouMayAlsoLikeSection: (config.showyoumayalsolikesection === undefined && config['show-you-may-also-like-section'] === undefined)
-      ? true
-      : isTruthy(config.showyoumayalsolikesection ?? config['show-you-may-also-like-section']),
+    showAddToCartButton: config.showaddtocartbutton === undefined && config['show-add-to-cart-button'] === undefined
+      ? true : isTruthy(config.showaddtocartbutton ?? config['show-add-to-cart-button']),
+    showAddToWishlistButton: config.showaddtowishlistbutton === undefined && config['show-add-to-wishlist-button'] === undefined
+      ? true : isTruthy(config.showaddtowishlistbutton ?? config['show-add-to-wishlist-button']),
+    showYouMayAlsoLikeSection: config.showyoumayalsolikesection === undefined && config['show-you-may-also-like-section'] === undefined
+      ? true : isTruthy(config.showyoumayalsolikesection ?? config['show-you-may-also-like-section']),
   };
 
-  // Extract folder path from block config
-  let folderHref = "";
-  const link = block.querySelector("a[href]");
-  if (link) {
-    folderHref = link.getAttribute("href");
-  } else {
-    folderHref = config.folder || "";
-  }
+  let folderHref = block.querySelector("a[href]")?.getAttribute("href") || config.folder || "";
 
-  // Strip .html extension if present
-  if (folderHref && folderHref.endsWith(".html")) {
-    folderHref = folderHref.replace(/\.html$/, "");
+  if (folderHref?.startsWith("http")) {
+    try { folderHref = new URL(folderHref).pathname; } catch (e) { /* ignore */ }
   }
+  if (folderHref?.endsWith(".html")) folderHref = folderHref.replace(/\.html$/, "");
 
-  // Get SKU from URL query parameter
   const sku = getQueryParam("productId");
-
-  // Clear block content
   block.textContent = "";
 
   if (!folderHref) {
-    const errorMsg = document.createElement("p");
-    errorMsg.className = "pd-error";
-    errorMsg.textContent =
-      "Please configure the product folder path in the properties panel.";
-    block.appendChild(errorMsg);
+    const err = document.createElement("p");
+    err.className = "pd-error";
+    err.textContent = "Please configure the product folder path in the properties panel.";
+    block.appendChild(err);
     return;
   }
 
   if (!sku) {
-    const errorMsg = document.createElement("p");
-    errorMsg.className = "pd-error";
-    errorMsg.textContent = "Product not found. Missing product ID in URL.";
-    block.appendChild(errorMsg);
+    const err = document.createElement("p");
+    err.className = "pd-error";
+    err.textContent = "Product not found. Missing product ID in URL.";
+    block.appendChild(err);
     return;
   }
 
-  // Show loading state
   const loader = document.createElement("p");
   loader.className = "pd-loading";
   loader.textContent = "Loading product details...";
   block.appendChild(loader);
 
-  // Fetch product and (optionally) recommendations source data in parallel
   const [product, allProducts] = await Promise.all([
     fetchProductDetail(folderHref, sku, isAuthor),
-    eventConfig.showYouMayAlsoLikeSection
-      ? fetchAllProducts(folderHref, isAuthor)
-      : Promise.resolve([]),
+    eventConfig.showYouMayAlsoLikeSection ? fetchAllProducts(folderHref, isAuthor) : Promise.resolve([]),
   ]);
 
   block.textContent = "";
 
   if (!product) {
-    const errorMsg = document.createElement("p");
-    errorMsg.className = "pd-error";
-    errorMsg.textContent = "Product not found or failed to load.";
-    block.appendChild(errorMsg);
+    const err = document.createElement("p");
+    err.className = "pd-error";
+    err.textContent = "Product not found or failed to load.";
+    block.appendChild(err);
     return;
   }
 
   updatePageTitle(product);
+  block.appendChild(buildProductDetail(product, isAuthor, eventConfig));
 
-  // Display product detail
-  const productDetail = buildProductDetail(product, isAuthor, eventConfig);
-  block.appendChild(productDetail);
-
-  // Display recommendations
   if (eventConfig.showYouMayAlsoLikeSection) {
-    const recommendations = buildRecommendations(product, allProducts, isAuthor);
-    if (recommendations) {
-      block.appendChild(recommendations);
-    }
+    const recs = buildRecommendations(product, allProducts, isAuthor);
+    if (recs) block.appendChild(recs);
   }
-  if (eventConfig.productView) {
-    dispatchCustomEvent(eventConfig.productView);
-  }
+
+  if (eventConfig.productView) dispatchCustomEvent(eventConfig.productView);
 }
