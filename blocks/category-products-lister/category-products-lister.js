@@ -1,29 +1,9 @@
 import { readBlockConfig, createProductImage } from "../../scripts/aem.js";
 import { isAuthorEnvironment, normalizeAemPath, normalizeCategoryValue } from "../../scripts/scripts.js";
 import { dispatchCustomEvent } from "../../scripts/custom-events.js";
-import { getEnvironmentValue, getHostname } from "../../scripts/utils.js";
 
-const AUTHOR_PRODUCTS_ENDPOINT = "/graphql/execute.json/dsn-eds-configuration/productsListByPath;";
-const PUBLISH_GRAPHQL_PROXY_ENDPOINT = "https://275323-918sangriatortoise.adobeioruntime.net/api/v1/web/dx-excshell-1/fetch-product-information";
-const PUBLISH_PRODUCTS_ENDPOINT_KEY = "productsListByPath";
-let categoryProductsAuthorBasePromise;
-let categoryProductsPublishEnvironmentPromise;
-
-async function getCategoryProductsAuthorBase() {
-  if (!categoryProductsAuthorBasePromise) {
-    categoryProductsAuthorBasePromise = getHostname()
-      .then((hostname) => (hostname || window.location.origin || "").replace(/\/$/, ""))
-      .catch(() => (window.location.origin || "").replace(/\/$/, ""));
-  }
-  return categoryProductsAuthorBasePromise;
-}
-
-async function getCategoryProductsPublishEnvironment() {
-  if (!categoryProductsPublishEnvironmentPromise) {
-    categoryProductsPublishEnvironmentPromise = getEnvironmentValue().catch(() => undefined);
-  }
-  return categoryProductsPublishEnvironmentPromise;
-}
+const AUTHOR_PRODUCTS_ENDPOINT = "https://author-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
+const PUBLISH_PRODUCTS_ENDPOINT = "https://publish-p139012-e1558121.adobeaemcloud.com/graphql/execute.json/allianz/getAllianzProduct;_path=";
 
 function coerceConfigScalar(v) {
   if (v == null) return '';
@@ -59,14 +39,14 @@ function appendProductId(url, productId) {
 }
 
 function buildProductUrl(item, isAuthor, redirectUrl = "") {
-  const productId = item?.sku || item?.id || "";
+  const productId = item?.sku || "";
   if (!productId) return "#";
   return appendProductId(redirectUrl || getDefaultProductDetailPath(isAuthor), productId);
 }
 
 function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, addToCartEventType = '') {
-  const { id, sku, name, damImageURL = {}, category = [], price, description = {} } = item || {};
-  const productId = sku || id || "";
+  const { sku, title, imageFile = {}, category, buyout, price, description = {} } = item || {};
+  const productId = sku || "";
 
   const wrapper = document.createElement("div");
   wrapper.className = "cpl-card-wrapper";
@@ -82,8 +62,8 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
   }
 
   let picture = null;
-  if (damImageURL && (damImageURL._dynamicUrl || damImageURL._publishUrl || damImageURL._authorUrl)) {
-    picture = createProductImage(damImageURL, name || "Product image", {
+  if (imageFile && (imageFile._dynamicUrl || imageFile._publishUrl || imageFile._authorUrl)) {
+    picture = createProductImage(imageFile, title || "Product image", {
       isAuthor,
       eager: false,
     });
@@ -97,36 +77,34 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
   meta.className = "cpl-card-meta";
   const cat = document.createElement("p");
   cat.className = "cpl-card-category";
-  cat.textContent = category
-    .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-    .filter(Boolean)
-    .join(" / ");
-  const title = document.createElement("h3");
-  title.className = "cpl-card-title";
-  title.textContent = name || "";
-  meta.append(cat, title);
+  cat.textContent = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
+  const titleEl = document.createElement("h3");
+  titleEl.className = "cpl-card-title";
+  titleEl.textContent = title || "";
+  const priceEl = document.createElement("p");
+  priceEl.className = "cpl-card-price";
+  priceEl.textContent = buyout || "";
+  meta.append(cat, titleEl, priceEl);
 
   card.append(imgWrap, meta);
   wrapper.append(card);
 
   if (enableAddToCart && productId) {
-    const formattedCategory = category
-      .map((catValue) => normalizeCategoryValue(catValue).replace(/\//g, " / "))
-      .join(", ");
-    const cartImageUrl = isAuthor ? damImageURL?._authorUrl : damImageURL?._publishUrl;
+    const formattedCategory = category ? normalizeCategoryValue(category).replace(/\//g, " / ") : "";
+    const cartImageUrl = isAuthor ? imageFile?._authorUrl : imageFile?._publishUrl;
 
     const addToCartBtn = document.createElement("button");
     addToCartBtn.className = "cpl-card-add-to-cart";
     addToCartBtn.textContent = "Add to Cart";
-    addToCartBtn.setAttribute("aria-label", `Add ${name} to cart`);
+    addToCartBtn.setAttribute("aria-label", `Add ${title} to cart`);
     addToCartBtn.addEventListener("click", () => {
       window.addToCart({
-        id: id || sku || "",
-        name: name || "",
+        id: sku || "",
+        name: title || "",
         image: cartImageUrl || "",
         thumbnail: cartImageUrl || "",
         category: formattedCategory,
-        description: description?.html || description?.markdown || "",
+        description: description?.plaintext || "",
         price: price || 0,
         quantity: 1,
       });
@@ -144,17 +122,12 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
   return wrapper;
 }
 
-async function fetchProducts(path) {
+async function fetchProducts(path, isAuthor) {
   try {
     if (!path) return [];
-
-    const isAuthor = isAuthorEnvironment();
-    const authorBase = await getCategoryProductsAuthorBase();
-    const environment = await getCategoryProductsPublishEnvironment();
     const url = isAuthor
-      ? `${authorBase}${AUTHOR_PRODUCTS_ENDPOINT}_path=${path}`
-      : `${PUBLISH_GRAPHQL_PROXY_ENDPOINT}?endpoint=${PUBLISH_PRODUCTS_ENDPOINT_KEY}${environment ? `&environment=${environment}` : ''}&_path=${path}`;
-
+      ? `${AUTHOR_PRODUCTS_ENDPOINT}${path}`
+      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
     const resp = await fetch(url, {
       method: 'GET',
       headers: {
@@ -163,7 +136,7 @@ async function fetchProducts(path) {
       },
     });
     const json = await resp.json();
-    return json?.data?.productModelList?.items || [];
+    return json?.data?.allianzProductModelList?.items || [];
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("Category Products Lister: fetch error", e);
@@ -177,12 +150,11 @@ function filterByCategories(items, tags) {
     .map((t) => normalizeCategoryValue(`${t}`.trim()).toLowerCase())
     .filter(Boolean);
   if (!filterList.length) return items;
-  return items.filter((item) =>
-    (item.category || []).some((cat) => {
-      const normalized = normalizeCategoryValue(cat).toLowerCase();
-      return filterList.some((tag) => normalized.includes(tag) || tag.includes(normalized));
-    })
-  );
+  return items.filter((item) => {
+    if (!item.category) return false;
+    const normalized = normalizeCategoryValue(item.category).toLowerCase();
+    return filterList.some((tag) => normalized.includes(tag) || tag.includes(normalized));
+  });
 }
 
 function readCardsPerRow(cfg, block) {
@@ -243,13 +215,13 @@ function renderCarousel(block, items, cfg, isAuthor, redirectUrl = "") {
   track.className = "cpl-carousel-track";
 
   items.forEach((item, i) => {
-    const { damImageURL = {} } = item || {};
+    const { imageFile = {} } = item || {};
     const slide = document.createElement("div");
     slide.className = "cpl-carousel-slide";
     if (i === 0) slide.classList.add("active");
 
-    if (damImageURL && (damImageURL._publishUrl || damImageURL._authorUrl || damImageURL._dynamicUrl)) {
-      const picture = createProductImage(damImageURL, item.name || "Product image", {
+    if (imageFile && (imageFile._publishUrl || imageFile._authorUrl || imageFile._dynamicUrl)) {
+      const picture = createProductImage(imageFile, item.title || "Product image", {
         isAuthor,
         eager: i === 0,
       });
@@ -266,7 +238,7 @@ function renderCarousel(block, items, cfg, isAuthor, redirectUrl = "") {
 
   const nameEl = document.createElement("h3");
   nameEl.className = "cpl-carousel-name";
-  nameEl.textContent = items[0]?.name || "";
+  nameEl.textContent = items[0]?.title || "";
 
   const learnMoreBtn = document.createElement("a");
   learnMoreBtn.className = "cpl-carousel-learn-more button";
@@ -286,7 +258,7 @@ function renderCarousel(block, items, cfg, isAuthor, redirectUrl = "") {
     slides[current].classList.remove("active");
     current = (index + items.length) % items.length;
     slides[current].classList.add("active");
-    nameEl.textContent = items[current]?.name || "";
+    nameEl.textContent = items[current]?.title || "";
     learnMoreBtn.href = buildProductUrl(items[current], isAuthor, redirectUrl);
   }
 
@@ -354,7 +326,7 @@ export default async function decorate(block) {
   // Clear author table
   block.innerHTML = "";
 
-  const allItems = await fetchProducts(folderHref);
+  const allItems = await fetchProducts(folderHref, isAuthor);
   const items = filterByCategories(allItems, tags);
 
   if (styleVariant === "carousel") {
