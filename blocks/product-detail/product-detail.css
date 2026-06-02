@@ -463,7 +463,6 @@ main .product-detail .pd-rec-grid .cpl-card-media {
   position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background-color: #0000000a;
 }
 
 main .product-detail .pd-rec-grid .cpl-card-media picture {
@@ -487,8 +486,6 @@ main .product-detail .pd-rec-grid .cpl-card-media img {
 main .product-detail .pd-rec-grid .cpl-card-meta {
   padding: 0 16px 14px;
   margin-top: -35px;
-  background: #fff;
-  border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
   gap: 5px;
