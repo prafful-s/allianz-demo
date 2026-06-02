@@ -391,8 +391,9 @@ main .product-detail .pd-btn-icon:hover {
    ============================================================ */
 
 main .product-detail .pd-recommendations {
-  margin-top: 80px;
-  padding-top: 60px;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 60px 32px 80px;
   border-top: 2px solid var(--pd-border);
 }
 
@@ -456,11 +457,10 @@ main .product-detail .pd-rec-card:hover {
   box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
 }
 
-/* Media — matches .cpl-card-media; max-height prevents oversized cards at full viewport width */
+/* Media — exact match of .cpl-card-media */
 main .product-detail .pd-rec-card-media {
   position: relative;
   aspect-ratio: 3 / 4;
-  max-height: 300px;
   overflow: hidden;
   background-color: #0000000a;
 }
