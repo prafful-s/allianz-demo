@@ -64,7 +64,7 @@ function buildStarRating(rating) {
 }
 
 function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, addToCartEventType = '') {
-  const { sku, title, imageFile = {}, category, buyout, targetAudience = [], rating, price, description = {} } = item || {};
+  const { sku, title, imageFile = {}, category, buyout, year, targetAudience = [], rating, price, description = {} } = item || {};
   const productId = sku || "";
 
   const wrapper = document.createElement("div");
@@ -107,12 +107,22 @@ function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = false, ad
     meta.append(audienceEl);
   }
 
-  if (buyout) {
+  if (year || buyout) {
     const buyoutEl = document.createElement("p");
     buyoutEl.className = "cpl-card-buyout";
-    const label = document.createElement("strong");
-    label.textContent = "Buyout: ";
-    buyoutEl.append(label, buyout);
+    const parts = [];
+    if (year) {
+      const yearLabel = document.createElement("strong");
+      yearLabel.textContent = "Year: ";
+      parts.push(yearLabel, String(year));
+    }
+    if (year && buyout) parts.push(" | ");
+    if (buyout) {
+      const buyoutLabel = document.createElement("strong");
+      buyoutLabel.textContent = "Buyout: ";
+      parts.push(buyoutLabel, buyout);
+    }
+    buyoutEl.append(...parts);
     meta.append(buyoutEl);
   }
 

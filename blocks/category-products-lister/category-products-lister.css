@@ -1,5 +1,6 @@
 main .category-products-lister {
   --cpl-gap: 24px;
+  padding-top: 20px;
 }
 
 main .category-products-lister .cpl-tags {
@@ -25,22 +26,12 @@ main .category-products-lister .cpl-grid {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
-  padding-bottom: 8px;
+  scrollbar-width: none;
+  padding-bottom: 0;
 }
 
 main .category-products-lister .cpl-grid::-webkit-scrollbar {
-  height: 4px;
-}
-
-main .category-products-lister .cpl-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-main .category-products-lister .cpl-grid::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
+  display: none;
 }
 
 main .category-products-lister .cpl-card-wrapper {
@@ -93,10 +84,11 @@ main .category-products-lister .cpl-card-media img {
 }
 
 main .category-products-lister .cpl-card-meta {
-  padding: 14px 16px 16px;
+  padding: 0 16px 14px;
+  margin-bottom: -35px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   flex: 1;
 }
 
