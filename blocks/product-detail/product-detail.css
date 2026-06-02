@@ -388,8 +388,6 @@ main .product-detail .pd-btn-icon:hover {
 
 /* ============================================================
    "You May Also Like" Recommendations
-   cpl-* classes reused here — re-scoped since cpl CSS is under
-   .category-products-lister and doesn't apply in this context.
    ============================================================ */
 
 main .product-detail .pd-recommendations {
@@ -410,11 +408,12 @@ main .product-detail .pd-rec-title {
   color: var(--pd-blue);
 }
 
-/* Grid */
-main .product-detail .pd-recommendations .cpl-grid {
+/* ── Grid ─────────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid {
   display: flex;
   flex-wrap: nowrap;
-  gap: var(--cpl-gap, 24px);
+  gap: 24px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -422,22 +421,24 @@ main .product-detail .pd-recommendations .cpl-grid {
   padding-bottom: 8px;
 }
 
-main .product-detail .pd-recommendations .cpl-grid::-webkit-scrollbar {
+main .product-detail .pd-rec-grid::-webkit-scrollbar {
   display: none;
 }
 
-/* Card wrapper */
-main .product-detail .pd-recommendations .cpl-card-wrapper {
+/* ── Card wrapper — 4 per row ─────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card-wrapper {
   display: flex;
   flex-direction: column;
-  flex: 0 0 var(--cpl-card-width, 260px);
-  width: var(--cpl-card-width, 260px);
+  flex: 0 0 calc((100% - 3 * 24px) / 4);
+  width: calc((100% - 3 * 24px) / 4);
   min-width: 0;
   scroll-snap-align: start;
 }
 
-/* Card */
-main .product-detail .pd-recommendations .cpl-card {
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -451,20 +452,21 @@ main .product-detail .pd-recommendations .cpl-card {
   cursor: pointer;
 }
 
-main .product-detail .pd-recommendations .cpl-card:hover {
+main .product-detail .pd-rec-grid .cpl-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
 }
 
-/* Card media */
-main .product-detail .pd-recommendations .cpl-card-media {
+/* ── Media ────────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card-media {
   position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background-color: #0000000a;
 }
 
-main .product-detail .pd-recommendations .cpl-card-media picture {
+main .product-detail .pd-rec-grid .cpl-card-media picture {
   position: absolute;
   inset: 0;
   display: block;
@@ -472,7 +474,7 @@ main .product-detail .pd-recommendations .cpl-card-media picture {
   height: 100%;
 }
 
-main .product-detail .pd-recommendations .cpl-card-media img {
+main .product-detail .pd-rec-grid .cpl-card-media img {
   display: block;
   width: 100%;
   height: 88%;
@@ -480,8 +482,9 @@ main .product-detail .pd-recommendations .cpl-card-media img {
   filter: brightness(.96);
 }
 
-/* Card meta */
-main .product-detail .pd-recommendations .cpl-card-meta {
+/* ── Meta ─────────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card-meta {
   padding: 0 16px 14px;
   display: flex;
   flex-direction: column;
@@ -489,7 +492,7 @@ main .product-detail .pd-recommendations .cpl-card-meta {
   flex: 1;
 }
 
-main .product-detail .pd-recommendations .cpl-card-title {
+main .product-detail .pd-rec-grid .cpl-card-title {
   margin: 0;
   padding: 0;
   font-size: 1rem;
@@ -498,16 +501,17 @@ main .product-detail .pd-recommendations .cpl-card-title {
   color: #111;
 }
 
-main .product-detail .pd-recommendations .cpl-card-audience,
-main .product-detail .pd-recommendations .cpl-card-buyout {
+main .product-detail .pd-rec-grid .cpl-card-audience,
+main .product-detail .pd-rec-grid .cpl-card-buyout {
   margin: 0;
   font-size: 0.78rem;
   color: #444;
   line-height: 1.4;
 }
 
-/* Footer */
-main .product-detail .pd-recommendations .cpl-card-footer {
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -515,7 +519,7 @@ main .product-detail .pd-recommendations .cpl-card-footer {
   padding-top: 10px;
 }
 
-main .product-detail .pd-recommendations .cpl-card-product-btn {
+main .product-detail .pd-rec-grid .cpl-card-product-btn {
   background: transparent;
   border: 1.5px solid #111;
   color: #111;
@@ -527,34 +531,32 @@ main .product-detail .pd-recommendations .cpl-card-product-btn {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-main .product-detail .pd-recommendations .cpl-card-product-btn:hover {
+main .product-detail .pd-rec-grid .cpl-card-product-btn:hover {
   background: #111;
   color: #fff;
 }
 
-/* Star rating */
-main .product-detail .pd-recommendations .cpl-card-stars {
+/* ── Stars ────────────────────────────────────────────────────────────────── */
+
+main .product-detail .pd-rec-grid .cpl-card-stars {
   display: flex;
   gap: 1px;
 }
 
-main .product-detail .pd-recommendations .cpl-card-star {
+main .product-detail .pd-rec-grid .cpl-card-star {
   position: relative;
   display: inline-block;
   font-size: 0.95rem;
   color: #ddd;
 }
 
-main .product-detail .pd-recommendations .cpl-card-star::before {
-  content: '★';
-}
+main .product-detail .pd-rec-grid .cpl-card-star::before { content: '★'; }
+main .product-detail .pd-rec-grid .cpl-card-star--full   { color: #f5a623; }
+main .product-detail .pd-rec-grid .cpl-card-star--empty  { color: #ddd; }
 
-main .product-detail .pd-recommendations .cpl-card-star--full { color: #f5a623; }
-main .product-detail .pd-recommendations .cpl-card-star--empty { color: #ddd; }
+main .product-detail .pd-rec-grid .cpl-card-star--half::before { color: #ddd; }
 
-main .product-detail .pd-recommendations .cpl-card-star--half::before { color: #ddd; }
-
-main .product-detail .pd-recommendations .cpl-card-star--half::after {
+main .product-detail .pd-rec-grid .cpl-card-star--half::after {
   content: '★';
   position: absolute;
   inset: 0;
@@ -563,7 +565,8 @@ main .product-detail .pd-recommendations .cpl-card-star--half::after {
   color: #f5a623;
 }
 
-/* Responsive */
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
 @media (width <= 768px) {
   main .product-detail .pd-recommendations {
     margin-top: 60px;

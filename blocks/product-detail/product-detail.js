@@ -388,9 +388,7 @@ function buildRecommendations(currentProduct, allProducts, isAuthor) {
   titleEl.textContent = "YOU MAY ALSO LIKE";
 
   const grid = document.createElement("div");
-  grid.className = "cpl-grid";
-  grid.style.setProperty("--cpl-gap", "24px");
-  grid.style.setProperty("--cpl-card-width", "calc((100% - 3 * 24px) / 4)");
+  grid.className = "pd-rec-grid";
   recommendations.forEach((p) => grid.append(buildCard(p, isAuthor)));
 
   section.append(titleEl, grid);
