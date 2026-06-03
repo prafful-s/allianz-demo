@@ -1,8 +1,8 @@
 body.luma-theme {
   --main-accent-color: #3273DE;
   --link-hover-color: #3273DE;
-  --nav-text-color: #000000;
-  --footer-text-color: #000000;
+  --nav-text-color: #ffffff;
+  --footer-text-color: #ffffff;
   --light-color: #f6f6f6;
   --spacing-xhuge: 9rem;
   display: flex;
@@ -20,8 +20,8 @@ body.luma-theme main > .section > div {
 
 body.luma-theme header .nav-wrapper,
 body.luma-theme footer {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 body.luma-theme header nav {
@@ -39,7 +39,7 @@ body.luma-theme header nav .nav-sections ul > li > a,
 body.luma-theme footer .footer,
 body.luma-theme footer .footer p,
 body.luma-theme footer .footer a {
-  color: #000000;
+  color: #ffffff;
 }
 
 body.luma-theme header nav .nav-sections ul > li > a {
@@ -88,8 +88,8 @@ body.luma-theme footer .footer a:hover {
 body.luma-theme .lang-switcher .lang-button,
 body.luma-theme a.sign-in-btn,
 body.luma-theme header nav .nav-tools a[href*="sign"] {
-  color: #000000;
-  border: 1px solid rgb(0 0 0 / 40%);
+  color: #ffffff;
+  border: 1px solid rgb(255 255 255 / 40%);
 }
 
 body.luma-theme header nav .nav-tools {
@@ -189,7 +189,7 @@ body.luma-theme .iframe.block iframe {
 
 @media (width < 900px) {
   body.luma-theme header nav .nav-sections ul > li > a {
-    color: #000000;
+    color: #ffffff;
   }
 }
 body.luma-theme .hero.block{
