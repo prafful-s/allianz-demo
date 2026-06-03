@@ -185,10 +185,7 @@ async function fetchProducts(path, isAuthor) {
       : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
     const resp = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-      },
+      cache: 'no-store',
     });
     const json = await resp.json();
     return json?.data?.allianzProductModelList?.items || [];
