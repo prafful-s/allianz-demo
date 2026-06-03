@@ -74,13 +74,7 @@ const COUNTRY_FLAGS = {
   global: "🌍",
 };
 
-function cleanCountryName(raw) {
-  // Strip surrounding escaped/literal quotes that the CMS injects: "\"Slovakia\"" → "Slovakia"
-  return (raw || "").replace(/^["']+|["']+$/g, "").trim();
-}
-
-function getCountryFlag(raw) {
-  const name = cleanCountryName(raw);
+function getCountryFlag(name) {
   return name ? (COUNTRY_FLAGS[name.toLowerCase()] || "") : "";
 }
 
@@ -184,14 +178,12 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
 
   if (country && country.length > 0) {
     if (country.length === 1) {
-      const cleaned = cleanCountryName(country[0]);
       const flag = getCountryFlag(country[0]);
-      metaItems.push({ label: "Origin OE", display: flag || cleaned, isFlag: !!flag });
+      metaItems.push({ label: "Origin OE", display: flag || country[0], isFlag: !!flag });
     } else {
       const parts = country.map((c) => {
-        const cleaned = cleanCountryName(c);
         const flag = getCountryFlag(c);
-        return flag ? `${flag} ${cleaned}` : cleaned;
+        return flag ? `${flag} ${c}` : c;
       }).filter(Boolean);
       metaItems.push({ label: "Origin OE", display: parts.join(" · "), isFlag: false });
     }
