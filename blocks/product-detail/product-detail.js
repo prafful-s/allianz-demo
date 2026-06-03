@@ -180,9 +180,18 @@ function buildProductDetail(product, isAuthor, eventConfig = {}) {
   const metaItems = [];
 
   if (country && country.length > 0) {
-    const cleaned = cleanCountryName(country[0]);
-    const flag = getCountryFlag(country[0]);
-    metaItems.push({ label: "Origin OE", display: flag || cleaned, isFlag: !!flag });
+    if (country.length === 1) {
+      const cleaned = cleanCountryName(country[0]);
+      const flag = getCountryFlag(country[0]);
+      metaItems.push({ label: "Origin OE", display: flag || cleaned, isFlag: !!flag });
+    } else {
+      const parts = country.map((c) => {
+        const cleaned = cleanCountryName(c);
+        const flag = getCountryFlag(c);
+        return flag ? `${flag} ${cleaned}` : cleaned;
+      }).filter(Boolean);
+      metaItems.push({ label: "Origin OE", display: parts.join(" · "), isFlag: false });
+    }
   }
 
   if (category) {
