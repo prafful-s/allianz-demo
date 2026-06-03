@@ -583,7 +583,7 @@ function addLumaCartIcon(container, langCode, isAuthor) {
 
   const cartLink = document.createElement('a');
   cartLink.href = isAuthor
-    ? `/content/${siteName}${PATH_PREFIX}/${langCode}/cart`
+    ? `/content/${siteName}${PATH_PREFIX}/${langCode}/cart.html`
     : `/${langCode}/cart`;
   cartLink.className = 'cart-icon';
   cartLink.setAttribute('aria-label', 'Shopping Cart');
