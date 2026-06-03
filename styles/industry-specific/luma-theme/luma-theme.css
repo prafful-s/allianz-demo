@@ -121,10 +121,6 @@ body.luma-theme header nav .nav-tools a[href*="cart"]::after {
   content: none !important;
 }
 
-body.luma-theme header nav .nav-tools .cart-icon:hover,
-body.luma-theme header nav .nav-tools a[href*="cart"]:hover {
-  background-color: #e8e8e8;
-}
 
 body.luma-theme header nav .nav-tools .cart-icon .cart-badge {
   position: absolute;
