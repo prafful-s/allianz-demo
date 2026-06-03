@@ -132,7 +132,7 @@ export function buildCard(item, isAuthor, redirectUrl = "", enableAddToCart = fa
 
   const productBtn = document.createElement("button");
   productBtn.className = "cpl-card-product-btn";
-  productBtn.textContent = "Product";
+  productBtn.textContent = category;
   productBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (productId) window.location.href = buildProductUrl(item, isAuthor, redirectUrl);
