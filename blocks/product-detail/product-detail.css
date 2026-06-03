@@ -13,7 +13,7 @@ main .product-detail-container {
 
 /* Remove section top/bottom gap for product detail pages */
 main > .section:has(.product-detail) {
-  margin: 0 !important;
+  margin: 100px 0px 0px 0px !important;
 }
 
 main .product-detail {
