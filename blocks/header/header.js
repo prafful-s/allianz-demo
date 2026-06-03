@@ -710,7 +710,7 @@ export default async function decorate(block) {
       createUserProfile(targetContainer, langCode, true);
     } else if (!targetContainer.querySelector('.sign-in-btn')) {
       const signInLink = document.createElement('a');
-      signInLink.href = `/${langCode}/sign-in`;
+      signInLink.href = isAuthor ? `/content/${siteName}${PATH_PREFIX}/${langCode}/sign-in.html` : `/${langCode}/sign-in`;
       signInLink.className = 'sign-in-btn';
       signInLink.textContent = 'Sign in';
       signInLink.title = 'Sign-In';

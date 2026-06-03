@@ -182,7 +182,7 @@ async function fetchProducts(path, isAuthor) {
     if (!path) return [];
     const url = isAuthor
       ? `${AUTHOR_PRODUCTS_ENDPOINT}${path}`
-      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
+      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}?ts=${Date.now()}`;
     const resp = await fetch(url, {
       method: 'GET',
       cache: 'no-store',

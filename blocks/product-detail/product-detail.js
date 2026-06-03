@@ -101,9 +101,12 @@ async function fetchProductDetail(path, sku, isAuthor) {
       return null;
     }
     const base = isAuthor ? AUTHOR_PRODUCT_DETAIL_ENDPOINT : PUBLISH_PRODUCT_DETAIL_ENDPOINT;
-    const resp = await fetch(`${base}_path=${path};sku=${sku}`, {
+    const detailUrl = isAuthor
+      ? `${base}_path=${path};sku=${sku}`
+      : `${base}_path=${path};sku=${sku}?ts=${Date.now()}`;
+    const resp = await fetch(detailUrl, {
       method: "GET",
-      headers: { "Cache-Control": "no-cache, no-store, must-revalidate", Pragma: "no-cache" },
+      cache: "no-store",
     });
     const json = await resp.json();
     const items = json?.data?.allianzProductModelList?.items || [];
@@ -120,10 +123,10 @@ async function fetchAllProducts(path, isAuthor) {
     if (!path) return [];
     const url = isAuthor
       ? `${AUTHOR_PRODUCTS_ENDPOINT}${path}`
-      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}`;
+      : `${PUBLISH_PRODUCTS_ENDPOINT}${path}?ts=${Date.now()}`;
     const resp = await fetch(url, {
       method: "GET",
-      headers: { "Cache-Control": "no-cache, no-store, must-revalidate", Pragma: "no-cache" },
+      cache: "no-store",
     });
     const json = await resp.json();
     return (json?.data?.allianzProductModelList?.items || []).filter((item) => item?.sku);
