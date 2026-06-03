@@ -576,13 +576,15 @@ function usesLumaStyleHeader() {
     || document.body.classList.contains('frescopa-theme');
 }
 
-function addLumaCartIcon(container, langCode) {
+function addLumaCartIcon(container, langCode, isAuthor) {
   if (!container || !usesLumaStyleHeader() || container.querySelector('.cart-icon')) {
     return;
   }
 
   const cartLink = document.createElement('a');
-  cartLink.href = `/${langCode}/cart`;
+  cartLink.href = isAuthor
+    ? `/content/${siteName}${PATH_PREFIX}/${langCode}/cart`
+    : `/${langCode}/cart`;
   cartLink.className = 'cart-icon';
   cartLink.setAttribute('aria-label', 'Shopping Cart');
   cartLink.setAttribute('title', 'Shopping Cart');
@@ -698,7 +700,7 @@ export default async function decorate(block) {
   if (navTools) {
     const contentWrapper = nav.querySelector('.nav-tools > div[class = "default-content-wrapper"]');
     const targetContainer = contentWrapper || navTools;
-    addLumaCartIcon(targetContainer, langCode);
+    addLumaCartIcon(targetContainer, langCode, isAuthor);
     // Find the <li> that contains the Sign In link so we can replace it with the user profile
     const signInLi = nav.querySelector('.nav-sections a[href*="sign-in"]')?.closest('li');
     // Add User Profile in place of Sign In when logged in
