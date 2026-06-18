@@ -52,7 +52,6 @@ main .product-detail .pd-container {
 /* ── Left: image panel ────────────────────────────────────────────────────── */
 
 main .product-detail .pd-image {
-  position: sticky;
   top: 0;
   height: 80vh;
   display: contents;
