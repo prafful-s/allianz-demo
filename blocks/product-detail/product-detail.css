@@ -61,8 +61,7 @@ main .product-detail .pd-image picture,
 main .product-detail .pd-image img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: center;
+  padding-top: 30px;
   object-position: center;
 }
 
