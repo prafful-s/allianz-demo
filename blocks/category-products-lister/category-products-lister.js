@@ -196,6 +196,24 @@ async function fetchProducts(path, isAuthor) {
   }
 }
 
+function getJcrCreated(item) {
+  const meta = item?._metadata?.calendarMetadata;
+  if (!Array.isArray(meta)) return null;
+  const entry = meta.find((m) => m.name === "jcr:created");
+  return entry?.value ? new Date(entry.value).getTime() : null;
+}
+
+function sortByJcrCreated(items) {
+  return [...items].sort((a, b) => {
+    const ta = getJcrCreated(a);
+    const tb = getJcrCreated(b);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return tb - ta; // newest first
+  });
+}
+
 function filterByCategories(items, tags) {
   if (!tags) return items;
   const filterList = (Array.isArray(tags) ? tags : `${tags}`.split(','))
@@ -379,7 +397,7 @@ export default async function decorate(block) {
   block.innerHTML = "";
 
   const allItems = await fetchProducts(folderHref, isAuthor);
-  const items = filterByCategories(allItems, tags);
+  const items = sortByJcrCreated(filterByCategories(allItems, tags));
 
   if (styleVariant === "carousel") {
     if (!items || items.length === 0) {
